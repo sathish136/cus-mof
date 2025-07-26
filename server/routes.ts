@@ -3361,8 +3361,8 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
       .from(attendance)
       .where(and(
         eq(attendance.employeeId, employeeId as string),
-        gte(attendance.date, startOfPeriod),
-        lte(attendance.date, endOfPeriod)
+        gte(attendance.date, startDate as string),
+        lte(attendance.date, endDate as string)
       ))
       .orderBy(attendance.date);
 
@@ -3387,12 +3387,24 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
       let offerHours = 0;
 
       if (attendanceRecord && attendanceRecord.checkIn && attendanceRecord.checkOut) {
-        const checkInDate = new Date(attendanceRecord.checkIn);
-        const checkOutDate = new Date(attendanceRecord.checkOut);
-        
-        // Use times as stored in database without timezone conversion
-        inTime = checkInDate.toTimeString().substring(0, 5);
-        outTime = checkOutDate.toTimeString().substring(0, 5);
+        try {
+          const checkInDate = new Date(attendanceRecord.checkIn);
+          const checkOutDate = new Date(attendanceRecord.checkOut);
+          
+          // Validate dates before formatting
+          if (!isNaN(checkInDate.getTime()) && !isNaN(checkOutDate.getTime())) {
+            // Use times as stored in database without timezone conversion
+            inTime = checkInDate.toTimeString().substring(0, 5);
+            outTime = checkOutDate.toTimeString().substring(0, 5);
+          } else {
+            inTime = '';
+            outTime = '';
+          }
+        } catch (error) {
+          console.error('Error processing dates:', error);
+          inTime = '';
+          outTime = '';
+        }
         
         // Status mapping
         switch (attendanceRecord.status) {
