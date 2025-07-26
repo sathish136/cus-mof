@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1242,20 +1243,44 @@ export default function Settings() {
                           <Users className="w-4 h-4" />
                         }
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          if (window.confirm(`Are you sure you want to delete device "${device.deviceId}"?\n\nThis action cannot be undone and will permanently remove the device from the system.`)) {
-                            deleteDeviceMutation.mutate(device.id);
-                          }
-                        }}
-                        disabled={deleteDeviceMutation.isPending}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                        title="Delete Device"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            disabled={deleteDeviceMutation.isPending}
+                            className="text-red-600 border-red-200 hover:bg-red-50"
+                            title="Delete Device"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center gap-2">
+                              <AlertCircle className="w-5 h-5 text-red-500" />
+                              Delete Biometric Device
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-2">
+                              <div>
+                                Are you sure you want to delete device <strong>"{device.deviceId}"</strong>?
+                              </div>
+                              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+                                <strong>Warning:</strong> This action cannot be undone and will permanently remove the device from the system.
+                              </div>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteDeviceMutation.mutate(device.id)}
+                              className="bg-red-600 hover:bg-red-700 text-white"
+                            >
+                              Delete Device
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </div>
