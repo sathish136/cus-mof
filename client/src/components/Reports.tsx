@@ -1150,20 +1150,21 @@ export default function Reports() {
               </div>
             </div>
             
-            <!-- Attendance Data Table -->
-            <table style="width: 100%; border-collapse: collapse; font-family: 'Arial', sans-serif; font-size: 9px;">
-              
-              <!-- Day Names Header -->
-              <thead>
-                <tr style="background: linear-gradient(to bottom, #f8fafc, #e2e8f0);">
-                  <th style="border: 2px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 10px; background: #64748b; color: white; width: 90px;">
-                    TIME DETAILS
-                  </th>`;
+            <!-- Enhanced Attendance Data Table -->
+            <div style="padding: 20px; background: linear-gradient(to bottom, #f8fafc, #ffffff);">
+              <table style="width: 100%; border-collapse: collapse; font-family: 'Arial', sans-serif; font-size: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+                
+                <!-- Enhanced Day Names Header -->
+                <thead>
+                  <tr style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
+                    <th style="border: 3px solid #1e40af; padding: 12px; text-align: center; font-weight: bold; font-size: 11px; background: #1e40af; color: white; width: 120px; letter-spacing: 1px;">
+                      ⏰ TIME DETAILS
+                    </th>`;
         
         days.forEach(day => {
           const dayName = day.toLocaleDateString('en-GB', { weekday: 'short' });
           htmlContent += `
-                  <th style="border: 2px solid #000; padding: 6px; text-align: center; font-weight: bold; font-size: 9px; background: #cbd5e1; min-width: 50px;">
+                  <th style="border: 3px solid #1e40af; padding: 8px; text-align: center; font-weight: bold; font-size: 10px; background: #3b82f6; color: white; min-width: 60px; letter-spacing: 0.5px;">
                     ${dayName.toUpperCase()}
                   </th>`;
         });
@@ -1171,15 +1172,15 @@ export default function Reports() {
         htmlContent += `
                 </tr>
                 
-                <!-- Date Numbers Row -->
-                <tr style="background: #f1f5f9;">
-                  <th style="border: 2px solid #000; padding: 6px; text-align: center; font-weight: bold; background: #475569; color: white; font-size: 9px;">
-                    DATE
+                <!-- Enhanced Date Numbers Row -->
+                <tr style="background: linear-gradient(135deg, #e2e8f0, #cbd5e1);">
+                  <th style="border: 3px solid #1e40af; padding: 10px; text-align: center; font-weight: bold; background: #475569; color: white; font-size: 10px; letter-spacing: 1px;">
+                    📅 DATE
                   </th>`;
         
         days.forEach(day => {
           htmlContent += `
-                  <th style="border: 2px solid #000; padding: 4px; text-align: center; font-weight: bold; font-size: 9px; background: #e2e8f0;">
+                  <th style="border: 3px solid #1e40af; padding: 6px; text-align: center; font-weight: bold; font-size: 10px; background: #e2e8f0; color: #1e40af;">
                     ${day.getDate().toString().padStart(2, '0')}
                   </th>`;
         });
@@ -1231,8 +1232,8 @@ export default function Reports() {
         
         timeRowConfigs.forEach(config => {
           htmlContent += `
-                <tr style="background-color: ${config.bgColor};">
-                  <td style="border: 2px solid #000; padding: 8px; font-weight: bold; text-align: center; background-color: ${config.labelBg}; color: white; font-size: 10px;">
+                <tr style="background-color: ${config.bgColor}; background-image: linear-gradient(135deg, ${config.bgColor}, ${config.bgColor}dd);">
+                  <td style="border: 3px solid #1e40af; padding: 12px; font-weight: bold; text-align: center; background: linear-gradient(135deg, ${config.labelBg}, ${config.labelBg}dd); color: white; font-size: 11px; letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
                     ${config.label}
                   </td>`;
           
@@ -1241,7 +1242,7 @@ export default function Reports() {
             const dayData = emp.dailyData?.[dayKey];
             
             let value = '-';
-            let cellStyle = `border: 2px solid #000; padding: 6px; text-align: center; font-weight: bold; font-size: 9px; font-family: 'Courier New', monospace; color: ${config.textColor};`;
+            let cellStyle = `border: 3px solid #1e40af; padding: 8px; text-align: center; font-weight: bold; font-size: 10px; font-family: 'Courier New', monospace; color: ${config.textColor}; background: rgba(255,255,255,0.8);`;
             
             if (dayData) {
               switch (config.key) {
@@ -1257,7 +1258,7 @@ export default function Reports() {
                 case 'status':
                   value = dayData.status || 'A';
                   const statusColors = { 'P': '#059669', 'A': '#dc2626', 'HL': '#f59e0b' };
-                  cellStyle = `border: 2px solid #000; padding: 6px; text-align: center; font-weight: bold; font-size: 10px; color: ${statusColors[value as keyof typeof statusColors] || '#374151'};`;
+                  cellStyle = `border: 3px solid #1e40af; padding: 8px; text-align: center; font-weight: bold; font-size: 11px; color: ${statusColors[value as keyof typeof statusColors] || '#374151'}; background: rgba(255,255,255,0.9); text-shadow: 0 1px 1px rgba(255,255,255,0.5);`;
                   break;
                 case 'overtimeHours':
                   if (dayData.overtimeHours && parseFloat(dayData.overtimeHours) > 0) {
@@ -1277,11 +1278,16 @@ export default function Reports() {
         
         htmlContent += `
               </tbody>
-            </table>
+              </table>
+            </div>
             
-            <!-- Summary Footer -->
-            <div style="background: #f8fafc; padding: 10px; border-top: 2px solid #000; text-align: center; font-size: 9px; color: #475569;">
-              <strong>Report Generated: ${new Date().toLocaleDateString('en-GB')} | Ministry of Finance Sri Lanka</strong>
+            <!-- Enhanced Summary Footer -->
+            <div style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); padding: 15px; border-top: 4px solid #1e40af; text-align: center; font-size: 10px; color: #1e40af; font-weight: bold; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>📅 Generated: ${new Date().toLocaleDateString('en-GB')}</span>
+                <span>🏛️ Ministry of Finance - Sri Lanka</span>
+                <span>🔒 Confidential Document</span>
+              </div>
             </div>
           </div>`;
         
@@ -1328,26 +1334,54 @@ export default function Reports() {
         
         <script>
           window.onload = function() {
-            // Add CSS to show layout options
+            // Add enhanced CSS for better PDF layout
             const style = document.createElement('style');
             style.textContent = \`
+              @media screen {
+                body {
+                  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                  margin: 20px;
+                  background: #f5f5f5;
+                }
+                .employee-section {
+                  margin-bottom: 30px !important;
+                  box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+                  border-radius: 8px !important;
+                  overflow: hidden;
+                }
+              }
               @media print {
-                @page { size: auto; margin: 0.5in; }
+                @page { 
+                  size: A4 landscape; 
+                  margin: 15mm; 
+                }
+                body {
+                  font-family: 'Arial', sans-serif;
+                  -webkit-print-color-adjust: exact;
+                  print-color-adjust: exact;
+                }
+                .employee-section {
+                  page-break-inside: avoid;
+                  margin-bottom: 40px !important;
+                }
               }
             \`;
             document.head.appendChild(style);
             
-            // Delay to ensure rendering is complete
-            setTimeout(() => {
-              window.print();
-            }, 500);
-            
-            // Close window after printing (optional)
-            setTimeout(() => {
-              if (window.opener) {
-                window.close();
-              }
-            }, 2000);
+            // Show preview first, then provide print options
+            const printBtn = document.createElement('div');
+            printBtn.innerHTML = \`
+              <div style="position: fixed; top: 20px; right: 20px; z-index: 1000; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid #3b82f6;">
+                <h3 style="margin: 0 0 10px 0; color: #1e40af; font-size: 14px;">📄 PDF Export Options</h3>
+                <button onclick="window.print()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 8px; font-weight: bold;">
+                  🖨️ Print/Save PDF
+                </button>
+                <button onclick="window.close()" style="background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                  ❌ Close Preview
+                </button>
+              </div>
+            \`;
+            document.body.appendChild(printBtn);
           }
         </script>
       </body>
