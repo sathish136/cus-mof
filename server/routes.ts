@@ -1278,15 +1278,21 @@ router.get("/api/reports/monthly-attendance", async (req, res) => {
         const attForDay = empAttendance.find(a => a.date && new Date(a.date).toDateString() === day.toDateString());
         if (attForDay) {
           if (attForDay.checkIn) {
-            dayData.inTime = new Date(attForDay.checkIn).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            dayData.inTime = new Date(attForDay.checkIn).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
           }
           if (attForDay.checkOut) {
-            dayData.outTime = new Date(attForDay.checkOut).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            dayData.outTime = new Date(attForDay.checkOut).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
             if (attForDay.checkIn) {
               const workedMs = new Date(attForDay.checkOut).getTime() - new Date(attForDay.checkIn).getTime();
               const hours = Math.floor(workedMs / 3600000);
               const minutes = Math.floor((workedMs % 3600000) / 60000);
               dayData.workedHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+              
+              // Calculate overtime
+              const requiredHours = emp.employeeGroup === 'group_a' ? 7.75 : 8.75;
+              const actualHours = workedMs / (1000 * 60 * 60);
+              const overtime = Math.max(0, actualHours - requiredHours);
+              dayData.overtimeHours = overtime > 0 ? overtime.toFixed(2) : '0.00';
             }
           }
         }

@@ -384,4 +384,7 @@ Changelog:
     - Created single export button with professional dropdown menu for Excel/PDF format selection
     - Fixed PDF export functionality for all custom reports (Monthly Absence, Individual Employee, Employee Punch Times)
     - Updated export format to include In Time, Out Time, Worked Hours, Status codes, and Overtime information in detailed rows
+    - Fixed monthly attendance backend API to provide proper timing data with 24-hour format (HH:MM)
+    - Updated Excel export to show actual timing information instead of status letters (A, P, HL)
+    - Added overtime calculation to monthly attendance data with proper Group A (7.75 hours) and Group B (8.75 hours) thresholds
     - System fully operational and ready for production use in standard Replit environment
