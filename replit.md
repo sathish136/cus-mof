@@ -237,6 +237,8 @@ Changelog:
     - Enhanced log processing to handle various UID field formats (uid, deviceUserId, userSn, etc.)
     - Added filtering to skip corrupted entries with year 2000 timestamps
     - Improved debugging output for troubleshooting biometric device data formats
+    - Hidden auto-sync GUI controls in Settings > Devices tab while keeping background functionality active
+    - Auto-sync continues to work every 30 seconds in background without user interface
     - Migration completed successfully - system ready for full operation
     - Successfully migrated complete HR Attendance Management System from Replit Agent to standard Replit environment
     - Fixed cross-env dependency issue preventing application startup by installing missing cross-env package

@@ -920,7 +920,8 @@ export default function Settings() {
 
         {/* Devices Tab */}
         <TabsContent value="devices" className="space-y-6">
-          {/* Auto Sync Settings */}
+          {/* Auto Sync Settings - HIDDEN (functionality runs in background) */}
+          {/*
           <Card className="border border-gray-200">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
@@ -1048,6 +1049,7 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
+          */}
 
           {/* Biometric Devices */}
       <Card className="border border-gray-200">
