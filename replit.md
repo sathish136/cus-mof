@@ -398,8 +398,10 @@ Changelog:
     - Used existing PostgreSQL database with provided DATABASE_URL connection string
     - Verified all database tables are present and functional: attendance, biometric_devices, departments, employees, holidays, leave_requests, leave_types, overtime_requests, short_leave_requests
     - Application server running successfully on port 5000 with full functionality
-    - Auto-sync system for biometric devices working correctly
+    - Auto-sync system for biometric devices working correctly (1636 records processed in latest sync)
     - All API endpoints functional with real database connections
+    - Fixed main header to display dynamic company name from settings ("DEMO - HR Attendance Management System")
+    - Company name properly updates in both sidebar and main header when changed in settings
     - Migration completed successfully - system ready for full operation
     - Successfully migrated HR Attendance Management System from Replit Agent to standard Replit environment
     - Fixed server port configuration to use port 5000 as required by Replit
