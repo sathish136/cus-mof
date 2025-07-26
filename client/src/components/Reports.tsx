@@ -225,6 +225,22 @@ export default function Reports() {
     enabled: reportType === "offer-attendance",
   });
 
+  // Individual 1/4 Offer Report query
+  const { data: individualOfferData, isLoading: isIndividualOfferLoading } = useQuery({
+    queryKey: ["/api/reports/individual-offer-attendance", startDate, endDate, selectedEmployee],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        startDate,
+        endDate,
+        employeeId: selectedEmployee,
+      });
+      const response = await fetch(`/api/reports/individual-offer-attendance?${params.toString()}`);
+      if (!response.ok) throw new Error("Failed to fetch individual offer report");
+      return response.json();
+    },
+    enabled: reportType === "individual-offer" && selectedEmployee !== "all",
+  });
+
   // Employee Punch Times Report query
   const { data: punchTimesData, isLoading: isPunchTimesLoading } = useQuery({
     queryKey: ["/api/reports/employee-punch-times", startDate, endDate, selectedEmployee],
@@ -2754,6 +2770,163 @@ export default function Reports() {
     );
   };
 
+  // Individual 1/4 Offer Report (matching Treasury format)
+  const renderIndividualOfferReport = () => {
+    if (isIndividualOfferLoading) {
+      return (
+        <div className="p-6">
+          <Card className="shadow-lg border-2 border-gray-200 bg-gradient-to-br from-white to-gray-50">
+            <CardContent className="p-8 flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                <div className="text-lg text-gray-600">Loading Individual 1/4 Offer Report...</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    if (!individualOfferData) {
+      return (
+        <div className="p-6">
+          <Card className="shadow-lg border-2 border-gray-200 bg-gradient-to-br from-white to-gray-50">
+            <CardContent className="p-8">
+              <div className="text-center py-12">
+                <Clock className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <div className="text-xl text-gray-500 mb-2">Select Employee Required</div>
+                <div className="text-gray-400">Please select a specific employee to generate the individual 1/4 offer report.</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+    };
+
+    const formatDateLong = (dateStr: string) => {
+      const date = new Date(dateStr);
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      return `${formatDate(dateStr)} ${days[date.getDay()]}`;
+    };
+
+    return (
+      <div className="p-4 space-y-4 bg-white">
+        {/* Print Format Header */}
+        <div className="border-2 border-black print:border-black">
+          <div className="text-center p-4 border-b border-black">
+            <div className="text-xs mb-2">gADG</div>
+            <div className="text-sm font-semibold">Project Management and Monitoring</div>
+            <div className="text-lg font-bold mt-2 underline">
+              Applying for 1/4 allowance of Treasury Officers
+            </div>
+          </div>
+
+          {/* Employee Information */}
+          <div className="p-4 border-b border-black">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <div className="text-sm mb-1">
+                  <span className="font-semibold">Emp Id :</span> {individualOfferData.employee.employeeId}
+                </div>
+                <div className="text-sm mb-1">
+                  <span className="font-semibold">Name :</span> {individualOfferData.employee.fullName}
+                </div>
+                <div className="text-sm">
+                  <span className="font-semibold">Period :</span> {formatDate(individualOfferData.period.startDate)} to {formatDate(individualOfferData.period.endDate)}
+                </div>
+              </div>
+              <div className="border border-black rounded-full w-12 h-12 flex items-center justify-center">
+                <div className="text-xs font-bold">1/4</div>
+              </div>
+            </div>
+
+            <div className="text-sm mb-2">
+              I, _________________________________ who serve as a ___________________________ at the Department of _______________________________, 
+              Object Management and Monitoring have completed an additional time period of ________ hours in the month of {individualOfferData.period.month}.
+            </div>
+            <div className="text-sm">
+              Therefore, I kindly request you to grant me Rs. _____________ as the 1/4 allowance of Treasury Officers according to the proposal.
+            </div>
+          </div>
+
+          {/* Attendance Table */}
+          <div className="p-4">
+            <table className="w-full border-collapse border border-black text-xs">
+              <thead>
+                <tr className="bg-blue-100">
+                  <th className="border border-black p-1 text-center font-semibold">Date</th>
+                  <th className="border border-black p-1 text-center font-semibold">In Time</th>
+                  <th className="border border-black p-1 text-center font-semibold">Out Time</th>
+                  <th className="border border-black p-1 text-center font-semibold">Status 1</th>
+                  <th className="border border-black p-1 text-center font-semibold">Status 2</th>
+                  <th className="border border-black p-1 text-center font-semibold bg-blue-200">1/4 Hours</th>
+                </tr>
+              </thead>
+              <tbody>
+                {individualOfferData.dailyData.map((day: any, index: number) => (
+                  <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                    <td className="border border-black p-1 text-center">
+                      {formatDateLong(day.date)}
+                    </td>
+                    <td className="border border-black p-1 text-center">{day.inTime}</td>
+                    <td className="border border-black p-1 text-center">{day.outTime}</td>
+                    <td className="border border-black p-1 text-center">{day.status1}</td>
+                    <td className="border border-black p-1 text-center">{day.status2}</td>
+                    <td className="border border-black p-1 text-center bg-blue-50 font-semibold">
+                      {parseFloat(day.offerHours) > 0 ? day.offerHours : '00:00'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Summary */}
+            <div className="mt-4 flex justify-end">
+              <div className="border border-black p-2 bg-blue-100">
+                <div className="text-sm font-semibold">Total: {individualOfferData.summary.totalOfferHours.toFixed(1)} hours</div>
+                <div className="text-xs">Basic salary: ___________________</div>
+                <div className="text-xs">Hour rate for 1/4 hours: ___________________</div>
+                <div className="text-xs">Total allowances for month of {individualOfferData.period.month}: ___________________</div>
+              </div>
+            </div>
+
+            {/* Signatures */}
+            <div className="mt-6 flex justify-between">
+              <div className="text-center">
+                <div className="border-t border-black pt-2 w-48">
+                  <div className="text-sm font-semibold">Signature of the requesting officer</div>
+                  <div className="text-xs mt-2">Date: ___________________</div>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="border-t border-black pt-2 w-48">
+                  <div className="text-sm font-semibold">Signature of the checked officer</div>
+                  <div className="text-xs mt-2">Date: ___________________</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Print Button */}
+        <div className="text-center mt-4 print:hidden">
+          <Button 
+            onClick={() => window.print()} 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Print Report
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-4">
@@ -2810,6 +2983,7 @@ export default function Reports() {
                 <SelectItem value="half-day">Half Day Report</SelectItem>
                 <SelectItem value="short-leave-usage">Short Leave Usage Report</SelectItem>
                 <SelectItem value="offer-attendance">1/4 Offer-Attendance Report</SelectItem>
+                <SelectItem value="individual-offer">Individual 1/4 Offer Report</SelectItem>
                 <SelectItem value="employee-punch-times">Employee Punch Times Report</SelectItem>
                 <SelectItem value="individual-monthly">Individual Employee Monthly Report</SelectItem>
                 <SelectItem value="monthly-absence">Monthly Absence Report</SelectItem>
@@ -2875,10 +3049,10 @@ export default function Reports() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Employee</label>
             <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
               <SelectTrigger className="w-full rounded-md border-gray-300">
-                <SelectValue placeholder={reportType === "individual-monthly" ? "Select an employee (required)" : "Select employee"} />
+                <SelectValue placeholder={(reportType === "individual-monthly" || reportType === "individual-offer") ? "Select an employee (required)" : "Select employee"} />
               </SelectTrigger>
               <SelectContent>
-                {reportType !== "individual-monthly" && <SelectItem value="all">All Employees</SelectItem>}
+                {(reportType !== "individual-monthly" && reportType !== "individual-offer") && <SelectItem value="all">All Employees</SelectItem>}
                 {employees && employees.map((emp: any) => (
                   <SelectItem key={emp.employeeId} value={emp.employeeId}>
                     {emp.fullName} ({emp.employeeId})
@@ -2914,6 +3088,7 @@ export default function Reports() {
       {reportType === "half-day" && renderHalfDayReport()}
       {reportType === "short-leave-usage" && renderShortLeaveUsageReport()}
       {reportType === "offer-attendance" && renderOfferAttendanceReport()}
+      {reportType === "individual-offer" && renderIndividualOfferReport()}
       {reportType === "employee-punch-times" && renderEmployeePunchTimesReport()}
       {reportType === "individual-monthly" && renderIndividualMonthlyReport()}
       {reportType === "monthly-absence" && renderMonthlyAbsenceReport()}
