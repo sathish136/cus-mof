@@ -34,7 +34,7 @@ export function LicenseGuard({ children, feature }: LicenseGuardProps) {
               The "{feature}" feature is not available in your current license.
             </p>
             <p className="text-xs text-gray-500">
-              Contact support to upgrade your license: support@wtt.gov.lk
+              Contact support to upgrade your license: support@liveu.lk
             </p>
           </CardContent>
         </Card>
@@ -97,10 +97,18 @@ export function LicenseGuard({ children, feature }: LicenseGuardProps) {
 
             
             <div className="pt-4 border-t">
+              <div className="flex items-center gap-3 mb-3">
+                <img 
+                  src="https://scontent.fcjb3-3.fna.fbcdn.net/v/t39.30808-6/309445827_486852076787349_5644388875101360052_n.png?_nc_cat=104&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=6HcMVpPBzk4Q7kNvwFPew9c&_nc_oc=AdnpkkNoPIvRsyL7f39etX-QA4CBZZnHzZHkStygQK2H8vw3U9fd3QTwC8xUjO8U2ZA&_nc_zt=23&_nc_ht=scontent.fcjb3-3.fna&_nc_gid=QYvqLigddQq2KoJT4F9_Yw&oh=00_AfR4BJ5oUbfZtx50f9NBsvRHHXix4qjOGMH5EpJJwTE7BQ&oe=688A581E" 
+                  alt="Live U Pvt Ltd" 
+                  className="w-8 h-8 rounded"
+                />
+                <span className="text-sm font-medium text-gray-700">Live U Pvt Ltd</span>
+              </div>
               <p className="text-xs text-gray-500">
                 For technical support or to obtain a license key:<br/>
-                Email: support@wtt.gov.lk<br/>
-                Phone: +94 11 234 5678
+                Email: support@liveu.lk<br/>
+                Phone: 0117780000
               </p>
             </div>
           </CardContent>
