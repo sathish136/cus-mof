@@ -395,4 +395,7 @@ Changelog:
     - Upgraded PDF export with modern styling, color-coded sections, gradient backgrounds, and proper table formatting
     - Added comprehensive cell styling for Excel exports with headers, employee details, and data alignment
     - Implemented professional PDF layout with employee attendance record sections and color-coded timing details
+    - **FIXED TIMEZONE ISSUE**: Corrected time display in all reports to show local Sri Lanka time (UTC+5:30) instead of UTC
+    - Updated Monthly Attendance, Individual Employee Monthly, and Employee Punch Times reports with proper timezone conversion
+    - All report times now display correctly in local format (HH:MM) matching the Attendance Tracker display
     - System fully operational and ready for production use in standard Replit environment

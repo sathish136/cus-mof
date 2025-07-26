@@ -1224,8 +1224,21 @@ router.get("/api/reports/monthly-attendance", async (req, res) => {
           dayData.status = 'A';
         } else if (attendanceRecord) {
           dayData.status = 'P';
-          dayData.inTime = attendanceRecord.checkIn ? new Date(attendanceRecord.checkIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
-          dayData.outTime = attendanceRecord.checkOut ? new Date(attendanceRecord.checkOut).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+          // Convert UTC times to Sri Lanka time zone (UTC+5:30)
+          if (attendanceRecord.checkIn) {
+            const checkInTime = new Date(attendanceRecord.checkIn);
+            checkInTime.setHours(checkInTime.getHours() + 5, checkInTime.getMinutes() + 30);
+            dayData.inTime = checkInTime.toTimeString().slice(0, 5); // HH:MM format
+          } else {
+            dayData.inTime = '';
+          }
+          if (attendanceRecord.checkOut) {
+            const checkOutTime = new Date(attendanceRecord.checkOut);
+            checkOutTime.setHours(checkOutTime.getHours() + 5, checkOutTime.getMinutes() + 30);
+            dayData.outTime = checkOutTime.toTimeString().slice(0, 5); // HH:MM format
+          } else {
+            dayData.outTime = '';
+          }
           if (attendanceRecord.checkIn && attendanceRecord.checkOut) {
             const diffMs = new Date(attendanceRecord.checkOut).getTime() - new Date(attendanceRecord.checkIn).getTime();
             const workedHours = Math.floor(diffMs / 3600000);
@@ -1274,27 +1287,7 @@ router.get("/api/reports/monthly-attendance", async (req, res) => {
         
         dailyData[dayKey] = dayData;
 
-        const attForDay = empAttendance.find(a => a.date && new Date(a.date).toDateString() === day.toDateString());
-        if (attForDay) {
-          if (attForDay.checkIn) {
-            dayData.inTime = new Date(attForDay.checkIn).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-          }
-          if (attForDay.checkOut) {
-            dayData.outTime = new Date(attForDay.checkOut).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-            if (attForDay.checkIn) {
-              const workedMs = new Date(attForDay.checkOut).getTime() - new Date(attForDay.checkIn).getTime();
-              const hours = Math.floor(workedMs / 3600000);
-              const minutes = Math.floor((workedMs % 3600000) / 60000);
-              dayData.workedHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-              
-              // Calculate overtime
-              const requiredHours = emp.employeeGroup === 'group_a' ? 7.75 : 8.75;
-              const actualHours = workedMs / (1000 * 60 * 60);
-              const overtime = Math.max(0, actualHours - requiredHours);
-              dayData.overtimeHours = overtime > 0 ? overtime.toFixed(2) : '0.00';
-            }
-          }
-        }
+        // Remove duplicate processing - already handled above
 
         const leaveForDay = empLeaves.find(l => l.startDate && l.endDate && day >= new Date(l.startDate) && day <= new Date(l.endDate));
         if (leaveForDay) {
@@ -3212,11 +3205,13 @@ router.get("/api/reports/employee-punch-times", async (req, res) => {
       // Add check-in punch
       if (record.checkIn) {
         const checkInTime = new Date(record.checkIn);
+        // Convert UTC to Sri Lanka time zone (UTC+5:30)
+        checkInTime.setHours(checkInTime.getHours() + 5, checkInTime.getMinutes() + 30);
         punchTimesData.push({
           employeeId: record.empId,
           fullName: record.employeeFullName,
           date: formattedDate,
-          punchTime: checkInTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+          punchTime: checkInTime.toTimeString().slice(0, 5), // HH:MM format
           type: 'IN',
           dayOfWeek: dayOfWeek
         });
@@ -3225,11 +3220,13 @@ router.get("/api/reports/employee-punch-times", async (req, res) => {
       // Add check-out punch  
       if (record.checkOut && (!record.checkIn || record.checkOut.getTime() !== record.checkIn.getTime())) {
         const checkOutTime = new Date(record.checkOut);
+        // Convert UTC to Sri Lanka time zone (UTC+5:30)
+        checkOutTime.setHours(checkOutTime.getHours() + 5, checkOutTime.getMinutes() + 30);
         punchTimesData.push({
           employeeId: record.empId,
           fullName: record.employeeFullName,
           date: formattedDate,
-          punchTime: checkOutTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+          punchTime: checkOutTime.toTimeString().slice(0, 5), // HH:MM format
           type: 'OUT',
           dayOfWeek: dayOfWeek
         });
@@ -3352,7 +3349,9 @@ router.get("/api/reports/individual-monthly", async (req, res) => {
         
         if (attendanceRecord.checkIn) {
           const checkIn = new Date(attendanceRecord.checkIn);
-          inTime = checkIn.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          // Convert UTC to Sri Lanka time zone (UTC+5:30)
+          checkIn.setHours(checkIn.getHours() + 5, checkIn.getMinutes() + 30);
+          inTime = checkIn.toTimeString().slice(0, 5); // HH:MM format
           
           // Check if late based on group policy
           const inTimeHour = checkIn.getHours();
@@ -3373,7 +3372,9 @@ router.get("/api/reports/individual-monthly", async (req, res) => {
 
         if (attendanceRecord.checkOut) {
           const checkOut = new Date(attendanceRecord.checkOut);
-          outTime = checkOut.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          // Convert UTC to Sri Lanka time zone (UTC+5:30)
+          checkOut.setHours(checkOut.getHours() + 5, checkOut.getMinutes() + 30);
+          outTime = checkOut.toTimeString().slice(0, 5); // HH:MM format
           
           // Calculate total hours
           if (attendanceRecord.checkIn) {
