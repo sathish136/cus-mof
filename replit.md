@@ -380,4 +380,8 @@ Changelog:
     - Added delete device mutation with confirmation dialog and proper error handling
     - Application server running successfully with full ZK biometric device integration
     - Database migration completed using SQL tool with proper foreign key constraints
+    - Enhanced monthly attendance Excel export format to match detailed employee-by-employee layout with timing information
+    - Created single export button with professional dropdown menu for Excel/PDF format selection
+    - Fixed PDF export functionality for all custom reports (Monthly Absence, Individual Employee, Employee Punch Times)
+    - Updated export format to include In Time, Out Time, Worked Hours, Status codes, and Overtime information in detailed rows
     - System fully operational and ready for production use in standard Replit environment

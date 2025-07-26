@@ -436,41 +436,132 @@ export default function Reports() {
       let worksheet: any;
       
       if (reportType === "monthly-attendance") {
-        // Special handling for monthly attendance sheet
-        // Add headers
-        const headers = ["S.No", "Employee ID", "Full Name", "Department", "Group"];
-        const firstEmployee = data[0];
-        if (firstEmployee?.dailyData) {
-          const dateColumns = Object.keys(firstEmployee.dailyData).sort();
-          dateColumns.forEach(date => {
-            const dayNum = new Date(date).getDate();
-            headers.push(dayNum.toString());
-          });
-          headers.push("Total Hours", "OT Hours", "Present Days");
+        // Create detailed monthly attendance sheet matching your exact format
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const days: Date[] = [];
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          days.push(new Date(d));
         }
-        worksheetData.push(headers);
-        
-        // Add data rows
-        data.forEach((emp: any, index: number) => {
-          const row = [
-            index + 1,
-            emp.employeeId,
-            emp.fullName,
-            emp.department || "",
-            emp.employeeGroup === 'group_a' ? 'Group A' : 'Group B'
-          ];
+
+        // Process each employee separately (like your attached image format)
+        data.forEach((emp: any) => {
+          // Employee header row
+          worksheetData.push([
+            `Name: ${emp.fullName}`,
+            `EMP ID: ${emp.employeeId}`,
+            `Department: ${emp.department || 'Unassigned'}`,
+            `Group: ${emp.employeeGroup === 'group_a' ? 'Group A' : 'Group B'}`
+          ]);
           
-          if (emp.dailyData) {
-            const dateColumns = Object.keys(emp.dailyData).sort();
-            dateColumns.forEach(date => {
-              const dayData = emp.dailyData[date];
-              const status = dayData?.status || 'A';
-              row.push(status);
-            });
-            row.push(emp.totalHours || '0.00', emp.overtimeHours || '0.00', emp.presentDays || 0);
-          }
+          // Day headers (Tue, Wed, Thu, etc.)
+          const dayHeaders = [''];
+          days.forEach(day => {
+            const dayName = day.toLocaleDateString('en-GB', { weekday: 'short' });
+            dayHeaders.push(dayName);
+          });
+          worksheetData.push(dayHeaders);
           
-          worksheetData.push(row);
+          // Date numbers
+          const dateRow = [''];
+          days.forEach(day => {
+            dateRow.push(day.getDate().toString());
+          });
+          worksheetData.push(dateRow);
+          
+          // In Time row
+          const inTimeRow = ['In Time'];
+          days.forEach(day => {
+            const dateKey = day.toISOString().split('T')[0];
+            const dayData = emp.dailyData?.[dateKey];
+            if (dayData?.inTime) {
+              // Format time from 24hr to 12hr with just hours:minutes
+              const time = new Date(`2000-01-01T${dayData.inTime}`);
+              const formattedTime = time.toLocaleTimeString('en-GB', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+              });
+              inTimeRow.push(formattedTime);
+            } else {
+              inTimeRow.push('');
+            }
+          });
+          worksheetData.push(inTimeRow);
+          
+          // Out Time row
+          const outTimeRow = ['Out Time'];
+          days.forEach(day => {
+            const dateKey = day.toISOString().split('T')[0];
+            const dayData = emp.dailyData?.[dateKey];
+            if (dayData?.outTime) {
+              const time = new Date(`2000-01-01T${dayData.outTime}`);
+              const formattedTime = time.toLocaleTimeString('en-GB', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+              });
+              outTimeRow.push(formattedTime);
+            } else {
+              outTimeRow.push('');
+            }
+          });
+          worksheetData.push(outTimeRow);
+          
+          // Worked Hours row
+          const workedHoursRow = ['Worked Hours'];
+          days.forEach(day => {
+            const dateKey = day.toISOString().split('T')[0];
+            const dayData = emp.dailyData?.[dateKey];
+            if (dayData?.totalHours) {
+              // Format as HH:MM
+              const hours = Math.floor(parseFloat(dayData.totalHours));
+              const minutes = Math.round((parseFloat(dayData.totalHours) - hours) * 60);
+              workedHoursRow.push(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+            } else {
+              workedHoursRow.push('');
+            }
+          });
+          worksheetData.push(workedHoursRow);
+          
+          // Status row
+          const statusRow = ['Status'];
+          days.forEach(day => {
+            const dateKey = day.toISOString().split('T')[0];
+            const dayData = emp.dailyData?.[dateKey];
+            if (dayData) {
+              // Convert status to single letter codes like your image
+              let statusCode = '';
+              switch(dayData.status?.toLowerCase()) {
+                case 'present': statusCode = 'P'; break;
+                case 'absent': statusCode = 'A'; break;
+                case 'late': statusCode = 'L'; break;
+                case 'half day': statusCode = 'HL'; break;
+                case 'half_day': statusCode = 'HL'; break;
+                default: statusCode = dayData.status || 'A';
+              }
+              statusRow.push(statusCode);
+            } else {
+              statusRow.push('A'); // Absent if no data
+            }
+          });
+          worksheetData.push(statusRow);
+          
+          // Overtime row
+          const overtimeRow = ['Overtime'];
+          days.forEach(day => {
+            const dateKey = day.toISOString().split('T')[0];
+            const dayData = emp.dailyData?.[dateKey];
+            if (dayData?.overtimeHours && parseFloat(dayData.overtimeHours) > 0) {
+              overtimeRow.push(parseFloat(dayData.overtimeHours).toFixed(2));
+            } else {
+              overtimeRow.push('');
+            }
+          });
+          worksheetData.push(overtimeRow);
+          
+          // Empty row for separation between employees
+          worksheetData.push([]);
         });
         
         worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
