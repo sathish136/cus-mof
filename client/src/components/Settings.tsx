@@ -1195,7 +1195,7 @@ export default function Settings() {
                         className="text-red-600 border-red-200 hover:bg-red-50"
                         title="Disconnect from ZK Device"
                       >
-                        <Power className="w-4 h-4" />
+                        <WifiOff className="w-4 h-4" />
                       </Button>
                       <Button 
                         variant="outline" 
