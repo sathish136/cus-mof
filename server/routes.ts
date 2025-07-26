@@ -541,14 +541,13 @@ router.get("/api/attendance", async (req, res) => {
     let finalRecords = allEmployeeRecords.map((record) => {
       if (record.attendanceId) {
         // Employee is present - format UTC times for display
-        const formatUTCTime = (utcTime: Date | null) => {
-          if (!utcTime) return null;
-          return utcTime.toLocaleTimeString('en-GB', { 
+        const formatTime = (time: Date | null) => {
+          if (!time) return null;
+          return time.toLocaleTimeString('en-GB', { 
             hour: '2-digit', 
             minute: '2-digit',
             second: '2-digit',
-            hour12: false,
-            timeZone: 'UTC'
+            hour12: false
           });
         };
 
@@ -558,8 +557,8 @@ router.get("/api/attendance", async (req, res) => {
           checkIn: record.checkIn,
           checkOut: record.checkOut,
           // Add formatted UTC times for frontend display
-          checkInDisplay: formatUTCTime(record.checkIn),
-          checkOutDisplay: formatUTCTime(record.checkOut),
+          checkInDisplay: formatTime(record.checkIn),
+          checkOutDisplay: formatTime(record.checkOut),
           status: record.attendanceStatus,
           workingHours: record.workingHours,
           notes: record.notes,
@@ -1471,14 +1470,13 @@ router.get("/api/reports/daily-attendance", async (req, res) => {
         status = 'Late';
       }
 
-      // Format UTC times for display
-      const formatUTCTime = (utcTime: Date | null) => {
-        if (!utcTime) return '';
-        return utcTime.toLocaleTimeString('en-GB', { 
+      // Format times for display (keep local timezone)
+      const formatTime = (time: Date | null) => {
+        if (!time) return '';
+        return time.toLocaleTimeString('en-GB', { 
           hour: '2-digit', 
           minute: '2-digit',
-          hour12: false,
-          timeZone: 'UTC'
+          hour12: false
         });
       };
 
@@ -1486,8 +1484,8 @@ router.get("/api/reports/daily-attendance", async (req, res) => {
         employeeId: emp.employeeId,
         fullName: emp.fullName,
         date: startOfDay.toISOString().split('T')[0],
-        inTime: formatUTCTime(inTime),
-        outTime: formatUTCTime(outTime),
+        inTime: formatTime(inTime),
+        outTime: formatTime(outTime),
         totalHours,
         isLate,
         isHalfDay,
