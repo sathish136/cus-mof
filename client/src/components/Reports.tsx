@@ -1132,39 +1132,57 @@ export default function Reports() {
         days.push(new Date(d));
       }
 
-      // Create professional PDF format with proper table boxes
+      // Create professional PDF format 
       data.forEach((emp: any, empIndex: number) => {
+        // Calculate totals for this employee
+        const totalWorkedHours = Object.values(emp.dailyData || {}).reduce((sum: number, day: any) => {
+          return sum + (parseFloat(day.workingHours) || 0);
+        }, 0);
+        
+        const totalOvertimeHours = Object.values(emp.dailyData || {}).reduce((sum: number, day: any) => {
+          return sum + (parseFloat(day.overtimeHours) || 0);
+        }, 0);
+        
         htmlContent += `
-          <div style="margin-bottom: 50px; page-break-inside: avoid; border: 3px solid #000; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <div style="margin-bottom: 40px; page-break-inside: avoid; border: 2px solid #000000; background: #ffffff;">
             
-            <!-- Employee Header Box -->
-            <div style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 15px; text-align: center; border-bottom: 3px solid #000;">
-              <h2 style="margin: 0; font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
-                MONTHLY ATTENDANCE RECORD
-              </h2>
-              <div style="margin-top: 8px; display: flex; justify-content: space-between; font-size: 12px; font-weight: bold;">
-                <span>NAME: ${emp.fullName}</span>
-                <span>EMP ID: ${emp.employeeId}</span>
-                <span>DEPT: ${emp.department || 'N/A'}</span>
-                <span>GROUP: ${emp.employeeGroup === 'group_a' ? 'A' : 'B'}</span>
-              </div>
+            <!-- Professional Employee Header -->
+            <div style="background: #f8f9fa; border-bottom: 2px solid #000000; padding: 15px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="text-align: left; font-weight: bold; font-size: 14px; color: #000000;">
+                    MONTHLY ATTENDANCE RECORD
+                  </td>
+                  <td style="text-align: right; font-size: 12px; color: #000000;">
+                    Period: ${new Date(startDate).toLocaleDateString('en-GB')} - ${new Date(endDate).toLocaleDateString('en-GB')}
+                  </td>
+                </tr>
+              </table>
+              <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <tr>
+                  <td style="padding: 5px; font-size: 12px; font-weight: bold; width: 25%;">Employee Name: ${emp.fullName}</td>
+                  <td style="padding: 5px; font-size: 12px; font-weight: bold; width: 25%;">Employee ID: ${emp.employeeId}</td>
+                  <td style="padding: 5px; font-size: 12px; font-weight: bold; width: 25%;">Department: ${emp.department || 'N/A'}</td>
+                  <td style="padding: 5px; font-size: 12px; font-weight: bold; width: 25%;">Group: ${emp.employeeGroup === 'group_a' ? 'A' : 'B'}</td>
+                </tr>
+              </table>
             </div>
             
-            <!-- Enhanced Attendance Data Table -->
-            <div style="padding: 20px; background: linear-gradient(to bottom, #f8fafc, #ffffff);">
-              <table style="width: 100%; border-collapse: collapse; font-family: 'Arial', sans-serif; font-size: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+            <!-- Professional Attendance Data Table -->
+            <div style="padding: 15px;">
+              <table style="width: 100%; border-collapse: collapse; font-family: 'Arial', sans-serif; font-size: 9px;">
                 
-                <!-- Enhanced Day Names Header -->
+                <!-- Professional Header -->
                 <thead>
-                  <tr style="background: linear-gradient(135deg, #1e40af, #3b82f6);">
-                    <th style="border: 3px solid #1e40af; padding: 12px; text-align: center; font-weight: bold; font-size: 11px; background: #1e40af; color: white; width: 120px; letter-spacing: 1px;">
-                      ⏰ TIME DETAILS
+                  <tr style="background: #e9ecef;">
+                    <th style="border: 1px solid #000000; padding: 8px; text-align: center; font-weight: bold; font-size: 10px; background: #e9ecef; color: #000000; width: 100px;">
+                      TIME DETAILS
                     </th>`;
         
         days.forEach(day => {
           const dayName = day.toLocaleDateString('en-GB', { weekday: 'short' });
           htmlContent += `
-                  <th style="border: 3px solid #1e40af; padding: 8px; text-align: center; font-weight: bold; font-size: 10px; background: #3b82f6; color: white; min-width: 60px; letter-spacing: 0.5px;">
+                  <th style="border: 1px solid #000000; padding: 6px; text-align: center; font-weight: bold; font-size: 9px; background: #e9ecef; color: #000000; min-width: 50px;">
                     ${dayName.toUpperCase()}
                   </th>`;
         });
@@ -1172,15 +1190,15 @@ export default function Reports() {
         htmlContent += `
                 </tr>
                 
-                <!-- Enhanced Date Numbers Row -->
-                <tr style="background: linear-gradient(135deg, #e2e8f0, #cbd5e1);">
-                  <th style="border: 3px solid #1e40af; padding: 10px; text-align: center; font-weight: bold; background: #475569; color: white; font-size: 10px; letter-spacing: 1px;">
-                    📅 DATE
+                <!-- Date Numbers Row -->
+                <tr style="background: #f8f9fa;">
+                  <th style="border: 1px solid #000000; padding: 6px; text-align: center; font-weight: bold; background: #f8f9fa; color: #000000; font-size: 9px;">
+                    DATE
                   </th>`;
         
         days.forEach(day => {
           htmlContent += `
-                  <th style="border: 3px solid #1e40af; padding: 6px; text-align: center; font-weight: bold; font-size: 10px; background: #e2e8f0; color: #1e40af;">
+                  <th style="border: 1px solid #000000; padding: 4px; text-align: center; font-weight: bold; font-size: 9px; background: #f8f9fa; color: #000000;">
                     ${day.getDate().toString().padStart(2, '0')}
                   </th>`;
         });
@@ -1232,8 +1250,8 @@ export default function Reports() {
         
         timeRowConfigs.forEach(config => {
           htmlContent += `
-                <tr style="background-color: ${config.bgColor}; background-image: linear-gradient(135deg, ${config.bgColor}, ${config.bgColor}dd);">
-                  <td style="border: 3px solid #1e40af; padding: 12px; font-weight: bold; text-align: center; background: linear-gradient(135deg, ${config.labelBg}, ${config.labelBg}dd); color: white; font-size: 11px; letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+                <tr style="background-color: ${config.bgColor};">
+                  <td style="border: 1px solid #000000; padding: 8px; font-weight: bold; text-align: center; background-color: ${config.labelBg}; color: white; font-size: 10px;">
                     ${config.label}
                   </td>`;
           
@@ -1242,7 +1260,7 @@ export default function Reports() {
             const dayData = emp.dailyData?.[dayKey];
             
             let value = '-';
-            let cellStyle = `border: 3px solid #1e40af; padding: 8px; text-align: center; font-weight: bold; font-size: 10px; font-family: 'Courier New', monospace; color: ${config.textColor}; background: rgba(255,255,255,0.8);`;
+            let cellStyle = `border: 1px solid #000000; padding: 6px; text-align: center; font-weight: bold; font-size: 9px; font-family: 'Arial', sans-serif; color: ${config.textColor}; background: #ffffff;`;
             
             if (dayData) {
               switch (config.key) {
@@ -1258,7 +1276,7 @@ export default function Reports() {
                 case 'status':
                   value = dayData.status || 'A';
                   const statusColors = { 'P': '#059669', 'A': '#dc2626', 'HL': '#f59e0b' };
-                  cellStyle = `border: 3px solid #1e40af; padding: 8px; text-align: center; font-weight: bold; font-size: 11px; color: ${statusColors[value as keyof typeof statusColors] || '#374151'}; background: rgba(255,255,255,0.9); text-shadow: 0 1px 1px rgba(255,255,255,0.5);`;
+                  cellStyle = `border: 1px solid #000000; padding: 6px; text-align: center; font-weight: bold; font-size: 10px; color: ${statusColors[value as keyof typeof statusColors] || '#374151'}; background: #ffffff;`;
                   break;
                 case 'overtimeHours':
                   if (dayData.overtimeHours && parseFloat(dayData.overtimeHours) > 0) {
@@ -1281,13 +1299,23 @@ export default function Reports() {
               </table>
             </div>
             
-            <!-- Enhanced Summary Footer -->
-            <div style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); padding: 15px; border-top: 4px solid #1e40af; text-align: center; font-size: 10px; color: #1e40af; font-weight: bold; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>📅 Generated: ${new Date().toLocaleDateString('en-GB')}</span>
-                <span>🏛️ Ministry of Finance - Sri Lanka</span>
-                <span>🔒 Confidential Document</span>
-              </div>
+            <!-- Summary Footer with Totals -->
+            <div style="background: #f8f9fa; padding: 15px; border-top: 2px solid #000000; border-bottom: 2px solid #000000;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="font-size: 12px; font-weight: bold; color: #000000; width: 50%;">
+                    MONTHLY SUMMARY - ${emp.fullName} (${emp.employeeId})
+                  </td>
+                  <td style="font-size: 12px; font-weight: bold; color: #000000; text-align: right;">
+                    Total Working Hours: ${totalWorkedHours.toFixed(2)} | Total Overtime Hours: ${totalOvertimeHours.toFixed(2)}
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="text-align: center; font-size: 10px; color: #000000; padding-top: 10px;">
+                    Generated: ${new Date().toLocaleDateString('en-GB')} | Ministry of Finance - Sri Lanka | Confidential Document
+                  </td>
+                </tr>
+              </table>
             </div>
           </div>`;
         
@@ -1368,20 +1396,10 @@ export default function Reports() {
             \`;
             document.head.appendChild(style);
             
-            // Show preview first, then provide print options
-            const printBtn = document.createElement('div');
-            printBtn.innerHTML = \`
-              <div style="position: fixed; top: 20px; right: 20px; z-index: 1000; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid #3b82f6;">
-                <h3 style="margin: 0 0 10px 0; color: #1e40af; font-size: 14px;">📄 PDF Export Options</h3>
-                <button onclick="window.print()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 8px; font-weight: bold;">
-                  🖨️ Print/Save PDF
-                </button>
-                <button onclick="window.close()" style="background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                  ❌ Close Preview
-                </button>
-              </div>
-            \`;
-            document.body.appendChild(printBtn);
+            // Show preview and automatically trigger print dialog after a short delay
+            setTimeout(() => {
+              window.print();
+            }, 1000);
           }
         </script>
       </body>
