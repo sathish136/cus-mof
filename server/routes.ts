@@ -3390,13 +3390,9 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
         const checkInDate = new Date(attendanceRecord.checkIn);
         const checkOutDate = new Date(attendanceRecord.checkOut);
         
-        // Convert to Sri Lanka time (UTC+5:30)
-        const sriLankaOffset = 5.5 * 60 * 60 * 1000;
-        const checkInSriLanka = new Date(checkInDate.getTime() + sriLankaOffset);
-        const checkOutSriLanka = new Date(checkOutDate.getTime() + sriLankaOffset);
-        
-        inTime = checkInSriLanka.toTimeString().substring(0, 5);
-        outTime = checkOutSriLanka.toTimeString().substring(0, 5);
+        // Use times as stored in database without timezone conversion
+        inTime = checkInDate.toTimeString().substring(0, 5);
+        outTime = checkOutDate.toTimeString().substring(0, 5);
         
         // Status mapping
         switch (attendanceRecord.status) {

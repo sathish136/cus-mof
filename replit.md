@@ -390,6 +390,15 @@ Changelog:
     - Weekend overtime now properly reflected in monthly reports with consistent calculation across all report types
     - Updated Monthly OT Report date filter to automatically set from month start (1st) to current date for better user experience
     - Fixed Monthly Attendance Sheet date filter to show full month range (1st to 30th/31st) for complete monthly view
+  - Individual 1/4 Offer Report Implementation (July 26, 2025):
+    - Created new Individual 1/4 Offer Report matching exact Treasury Officers format from user's attached image
+    - Implemented comprehensive API endpoint with proper 1/4 hour rounding logic (down to nearest 15-minute blocks)
+    - Added daily attendance table with Date, In Time, Out Time, Status 1, Status 2, and 1/4 Hours columns
+    - Built print-ready format with employee details, period information, and signature areas
+    - Fixed timezone display to show times as stored in database without UTC+5:30 conversion
+    - Applied proper status mapping (P, LP, HD, AB, MS) for attendance records
+    - Integrated weekend overtime calculation (full hours as 1/4 offer hours)
+    - Added professional Treasury document formatting with borders and proper spacing
   - Three Additional Custom Reports Implementation (July 12, 2025):
     - Added Employee Punch Times Report showing all check-in/check-out timestamps with employee details and day information
     - Added Individual Employee Monthly Report with detailed daily breakdown including late/half-day/short leave status
