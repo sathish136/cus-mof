@@ -3335,48 +3335,48 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
     const { getGroupWorkingHours } = await import('./hrSettings.js');
     const groupSettings = getGroupWorkingHours();
 
-    // Get employee details
-    const employee = await db.query.employees.findFirst({
-      where: eq(employees.id, parseInt(employeeId as string))
-    });
+    // Get employee details using raw SQL to avoid timestamp issues
+    const employeeResult = await db.execute(sql`
+      SELECT employee_id, full_name, position, department_id, employee_group
+      FROM employees 
+      WHERE employee_id = ${employeeId}
+    `);
 
-    if (!employee) {
+    if (employeeResult.rows.length === 0) {
       return res.status(404).json({ message: 'Employee not found' });
     }
 
-    const startOfPeriod = new Date(startDate as string);
-    const endOfPeriod = new Date(endDate as string);
-    endOfPeriod.setHours(23, 59, 59, 999);
+    const employee = employeeResult.rows[0];
 
-    // Get all attendance records for the employee in the period
-    const attendanceRecords = await db
-      .select({
-        date: attendance.date,
-        checkIn: attendance.checkIn,
-        checkOut: attendance.checkOut,
-        status: attendance.status,
-        workingHours: attendance.workingHours,
-        overtimeHours: attendance.overtimeHours
-      })
-      .from(attendance)
-      .where(and(
-        eq(attendance.employeeId, employeeId as string),
-        gte(attendance.date, startDate as string),
-        lte(attendance.date, endDate as string)
-      ))
-      .orderBy(attendance.date);
+    // Create proper date range for the query
+    const startDateStr = startDate as string;
+    const endDateStr = endDate as string;
+
+    // Get all attendance records for the employee in the period using SQL
+    const attendanceRecords = await db.execute(sql`
+      SELECT date, check_in, check_out, status, working_hours, overtime_hours
+      FROM attendance 
+      WHERE employee_id = ${employeeId}
+        AND date >= ${startDateStr}::date
+        AND date <= ${endDateStr}::date
+      ORDER BY date ASC
+    `);
 
     // Generate daily breakdown
     const dailyData = [];
     let totalOfferHours = 0;
-    const overtimeStartTime = employee.employeeGroup === 'group_a' ? '16:15' : '16:45';
+    const overtimeStartTime = employee.employee_group === 'group_a' ? '16:15' : '16:45';
 
+    // Create date range for iteration
+    const startOfPeriod = new Date(startDateStr);
+    const endOfPeriod = new Date(endDateStr);
+    
     for (let date = new Date(startOfPeriod); date <= endOfPeriod; date.setDate(date.getDate() + 1)) {
       const currentDate = new Date(date);
       const dayOfWeek = currentDate.getDay();
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       
-      const attendanceRecord = attendanceRecords.find(record => 
+      const attendanceRecord = attendanceRecords.rows.find(record => 
         new Date(record.date).toDateString() === currentDate.toDateString()
       );
 
@@ -3386,10 +3386,13 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
       let status2 = '';
       let offerHours = 0;
 
-      if (attendanceRecord && attendanceRecord.checkIn && attendanceRecord.checkOut) {
+      if (attendanceRecord && attendanceRecord.check_in && attendanceRecord.check_out) {
+        let checkInDate: Date | null = null;
+        let checkOutDate: Date | null = null;
+        
         try {
-          const checkInDate = new Date(attendanceRecord.checkIn);
-          const checkOutDate = new Date(attendanceRecord.checkOut);
+          checkInDate = new Date(attendanceRecord.check_in);
+          checkOutDate = new Date(attendanceRecord.check_out);
           
           // Validate dates before formatting
           if (!isNaN(checkInDate.getTime()) && !isNaN(checkOutDate.getTime())) {
@@ -3399,11 +3402,15 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
           } else {
             inTime = '';
             outTime = '';
+            checkInDate = null;
+            checkOutDate = null;
           }
         } catch (error) {
           console.error('Error processing dates:', error);
           inTime = '';
           outTime = '';
+          checkInDate = null;
+          checkOutDate = null;
         }
         
         // Status mapping
@@ -3429,32 +3436,34 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
             status2 = 'MS';
         }
 
-        // Calculate 1/4 offer hours with rounding
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-        
-        if (isWeekend) {
-          // Weekend: all working hours as offer hours
-          const workingMs = checkOutDate.getTime() - checkInDate.getTime();
-          const rawHours = workingMs / (1000 * 60 * 60);
+        // Calculate 1/4 offer hours with rounding (only if dates are valid)
+        if (checkInDate && checkOutDate) {
+          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
           
-          // Round down to nearest 15-minute block
-          const totalMinutes = Math.floor(rawHours * 60);
-          const roundedMinutes = Math.floor(totalMinutes / 15) * 15;
-          offerHours = roundedMinutes / 60;
-        } else {
-          // Regular day: only after overtime start time
-          const [overtimeHour, overtimeMinute] = overtimeStartTime.split(':').map(Number);
-          const overtimeStart = new Date(currentDate);
-          overtimeStart.setHours(overtimeHour, overtimeMinute, 0, 0);
-          
-          if (checkOutDate > overtimeStart) {
-            const overtimeMs = checkOutDate.getTime() - overtimeStart.getTime();
-            const rawHours = Math.max(0, overtimeMs / (1000 * 60 * 60));
+          if (isWeekend) {
+            // Weekend: all working hours as offer hours
+            const workingMs = checkOutDate.getTime() - checkInDate.getTime();
+            const rawHours = workingMs / (1000 * 60 * 60);
             
             // Round down to nearest 15-minute block
             const totalMinutes = Math.floor(rawHours * 60);
             const roundedMinutes = Math.floor(totalMinutes / 15) * 15;
             offerHours = roundedMinutes / 60;
+          } else {
+            // Regular day: only after overtime start time
+            const [overtimeHour, overtimeMinute] = overtimeStartTime.split(':').map(Number);
+            const overtimeStart = new Date(currentDate);
+            overtimeStart.setHours(overtimeHour, overtimeMinute, 0, 0);
+            
+            if (checkOutDate > overtimeStart) {
+              const overtimeMs = checkOutDate.getTime() - overtimeStart.getTime();
+              const rawHours = Math.max(0, overtimeMs / (1000 * 60 * 60));
+              
+              // Round down to nearest 15-minute block
+              const totalMinutes = Math.floor(rawHours * 60);
+              const roundedMinutes = Math.floor(totalMinutes / 15) * 15;
+              offerHours = roundedMinutes / 60;
+            }
           }
         }
       } else {
@@ -3483,22 +3492,21 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
 
     res.json({
       employee: {
-        employeeId: employee.employeeId,
-        fullName: employee.fullName,
+        employeeId: employee.employee_id,
+        fullName: employee.full_name,
         position: employee.position,
-        department: employee.departmentId,
-        group: employee.employeeGroup
+        department: employee.department_id,
+        employeeGroup: employee.employee_group
       },
       period: {
-        startDate: startOfPeriod.toISOString().split('T')[0],
-        endDate: endOfPeriod.toISOString().split('T')[0],
-        month: startOfPeriod.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        startDate: startDateStr,
+        endDate: endDateStr
       },
+      dailyData,
       summary: {
-        totalOfferHours: parseFloat(totalOfferHours.toFixed(2)),
-        overtimeStartTime
-      },
-      dailyData
+        totalOfferHours: Math.round(totalOfferHours * 100) / 100,
+        totalDays: dailyData.length
+      }
     });
   } catch (error) {
     console.error('Failed to fetch individual offer-attendance report:', error);

@@ -464,10 +464,14 @@ Changelog:
     - Database truncation functionality verified working for fresh data import
     - Application server running successfully on port 5000 with corrected time display across all modules
     - Migration completed with full functionality and proper timezone handling
-  - 1/4 Hour OT Rounding Logic Implementation (July 26, 2025):
-    - Updated 1/4 Offer-Attendance Report overtime calculation to round down to nearest 15-minute blocks
-    - Implemented proper rounding for both regular overtime (after 4:15 PM Group A, 4:45 PM Group B) and weekend/holiday hours
-    - Example: 1 hour 17 minutes overtime becomes 1 hour 15 minutes (rounded down to nearest 15-min block)
-    - Updated both attendanceCalculator.ts and routes.ts offer-attendance API endpoint
-    - Enhanced frontend display to show 1/4 hour rounding policy in report description
-    - All OT calculations now follow: 1 hr, 1 hr 15 mins, 1 hr 30 mins, 1 hr 45 mins, 2 hrs, etc.
+  - Individual 1/4 Offer Report Implementation & Timezone Fix (July 26, 2025):
+    - Successfully implemented Individual 1/4 Offer Report matching exact Treasury Officers format
+    - Fixed critical database query errors ("Invalid time value" and "toISOString" issues) by replacing Drizzle ORM with raw SQL
+    - Resolved variable scope issues with checkInDate/checkOutDate references
+    - Fixed timezone display to show times as stored in database without UTC+5:30 conversion
+    - Times now display correctly (14:28→23:47, 09:05→13:34, etc.) matching user's data format
+    - Implemented proper 1/4 hour rounding logic (down to nearest 15-minute blocks)
+    - Weekend overtime calculation: full working hours count as offer hours
+    - Weekday overtime calculation: only hours after 4:15 PM (Group A) or 4:45 PM (Group B) count
+    - Report includes daily attendance table, employee details, status mapping (P, LP, HD, AB, MS), and summary totals
+    - Individual 1/4 Offer Report now fully functional with correct time display and Treasury format compliance
