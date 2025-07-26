@@ -2276,22 +2276,183 @@ router.post("/api/auto-sync/manual", async (req, res) => {
   }
 });
 
-router.get("/api/auto-sync/status", (req, res) => {
-  res.json({
-    enabled: autoSyncSettings.enabled,
-    running: autoSyncInterval !== null,
-    lastSync: autoSyncSettings.lastSync,
-    intervalMinutes: autoSyncSettings.intervalMinutes
-  });
-});
-
-router.post("/api/auto-sync/manual", async (req, res) => {
+router.post("/api/auto-sync/full-sync", async (req, res) => {
   try {
-    await performAutoSync();
-    res.json({ success: true, message: "Manual sync completed", lastSync: autoSyncSettings.lastSync });
+    console.log('Starting FULL SYNC of all devices - retrieving complete historical attendance data...');
+    
+    const devices = await db.select().from(biometricDevices);
+    let totalSynced = 0;
+    let totalProcessed = 0;
+    const deviceResults: { [deviceId: string]: number } = {};
+    
+    for (const device of devices) {
+      try {
+        if (!zkDeviceManager.isDeviceConnected(device.deviceId)) {
+          const connected = await zkDeviceManager.connectDevice(device.deviceId, {
+            ip: device.ip,
+            port: device.port,
+            timeout: 5000,
+            inport: 1,
+          });
+          if (!connected) {
+            console.warn(`Could not connect to device ${device.deviceId} during full sync`);
+            deviceResults[device.deviceId] = 0;
+            continue;
+          }
+        }
+
+        // Perform full sync to get ALL historical records
+        const logs = await zkDeviceManager.syncAttendanceData(device.deviceId, true);
+        if (logs && logs.length > 0) {
+          console.log(`FULL SYNC: Processing ${logs.length} records from device ${device.deviceId}`);
+          
+          // Process attendance logs into database records (same logic as auto-sync)
+          const attendanceMap = new Map();
+          const allEmployees = await db.select().from(employees);
+          
+          // Create lookup function for employee IDs
+          const findEmployeeIdLocal = (uid: string): string | null => {
+            const trimmedUid = String(uid).trim();
+            
+            // Try exact match with employee_id first
+            const byEmpId = allEmployees.find(emp => emp.employeeId === trimmedUid);
+            if (byEmpId) return byEmpId.id;
+            
+            // Try exact match with biometric_device_id if it exists
+            const byBiometric = allEmployees.find(emp => emp.biometricDeviceId && emp.biometricDeviceId === trimmedUid);
+            if (byBiometric) return byBiometric.id;
+            
+            // Try exact match with id field as fallback
+            const byId = allEmployees.find(emp => emp.id === trimmedUid);
+            if (byId) return byId.id;
+            
+            return null;
+          };
+
+          let foundCount = 0;
+          let notFoundCount = 0;
+          
+          for (const log of logs) {
+            const uid = String(log.uid).trim();
+            const employeeDbId = findEmployeeIdLocal(uid);
+            if (!employeeDbId) {
+              notFoundCount++;
+              continue;
+            }
+            foundCount++;
+
+            const logDate = new Date(log.timestamp);
+            const dateKey = `${employeeDbId}-${logDate.toISOString().split('T')[0]}`;
+            
+            // Initialize or update attendance record
+            if (!attendanceMap.has(dateKey)) {
+              attendanceMap.set(dateKey, {
+                employeeId: employeeDbId,
+                date: new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate()),
+                checkIn: log.timestamp,
+                checkOut: log.timestamp,
+                logs: [log]
+              });
+            } else {
+              const record = attendanceMap.get(dateKey)!;
+              record.logs.push(log);
+              // Update check-in/check-out times
+              if (log.timestamp < record.checkIn) record.checkIn = log.timestamp;
+              if (log.timestamp > record.checkOut) record.checkOut = log.timestamp;
+            }
+          }
+
+          // Prepare records for database insertion
+          const attendanceRecordsToInsert: (typeof attendance.$inferInsert)[] = [];
+          for (const [_, record] of attendanceMap) {
+            // Calculate working hours
+            const workingHours = ((record.checkOut.getTime() - record.checkIn.getTime()) / (1000 * 60 * 60)).toFixed(2);
+            
+            // Skip if check-in/check-out spans multiple days
+            if (record.checkIn.toDateString() !== record.checkOut.toDateString()) {
+              console.warn(`Skipping record for employee ${record.employeeId} - check-in and check-out are on different days`);
+              continue;
+            }
+
+            attendanceRecordsToInsert.push({
+              employeeId: record.employeeId,
+              date: record.date,
+              checkIn: record.checkIn,
+              checkOut: record.checkOut,
+              status: 'present',
+              workingHours: workingHours,
+              notes: '',
+              overtimeHours: null,
+            });
+          }
+
+          // Insert or update attendance records
+          for (const record of attendanceRecordsToInsert) {
+            try {
+              await db.transaction(async (tx) => {
+                // First try to update existing record
+                const updated = await tx
+                  .update(attendance)
+                  .set({
+                    checkIn: record.checkIn,
+                    checkOut: record.checkOut,
+                    workingHours: record.workingHours,
+                    status: record.status,
+                    notes: record.notes,
+                  })
+                  .where(
+                    and(
+                      eq(attendance.employeeId, record.employeeId),
+                      eq(attendance.date, record.date)
+                    )
+                  );
+
+                // If no rows were updated, insert a new record
+                if (updated.rowCount === 0) {
+                  await tx.insert(attendance).values({
+                    employeeId: record.employeeId,
+                    date: record.date,
+                    checkIn: record.checkIn,
+                    checkOut: record.checkOut,
+                    status: record.status,
+                    workingHours: record.workingHours,
+                    notes: record.notes,
+                    overtimeHours: null,
+                  });
+                }
+              });
+              totalProcessed++;
+            } catch (error) {
+              console.error('Error upserting attendance record during full sync:', error);
+            }
+          }
+          
+          totalSynced += logs.length;
+          deviceResults[device.deviceId] = attendanceRecordsToInsert.length;
+          console.log(`FULL SYNC: Device ${device.deviceId} - ${logs.length} raw records, processed ${attendanceRecordsToInsert.length} attendance records`);
+        } else {
+          deviceResults[device.deviceId] = 0;
+        }
+      } catch (error) {
+        console.error(`Full sync error for device ${device.deviceId}:`, error);
+        deviceResults[device.deviceId] = 0;
+      }
+    }
+    
+    autoSyncSettings.lastSync = new Date();
+    console.log(`FULL SYNC completed: ${totalSynced} raw records retrieved, ${totalProcessed} attendance records saved to database`);
+    
+    res.json({ 
+      success: true, 
+      message: "Full sync completed - all historical attendance data retrieved", 
+      totalRecordsRetrieved: totalSynced,
+      totalRecordsProcessed: totalProcessed,
+      deviceResults,
+      lastSync: autoSyncSettings.lastSync 
+    });
   } catch (error) {
-    console.error("Manual sync failed:", error);
-    res.status(500).json({ success: false, message: "Manual sync failed" });
+    console.error("Full sync failed:", error);
+    res.status(500).json({ success: false, message: "Full sync failed" });
   }
 });
 

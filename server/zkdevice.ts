@@ -1,4 +1,6 @@
 import ZKLib from 'zklib-js';
+import { db } from './db';
+import { biometricDevices } from '../shared/schema';
 
 export interface ZKDeviceInfo {
   ip: string;
@@ -75,14 +77,27 @@ export class ZKDeviceManager {
     }
   }
 
-  async getAttendanceLogs(deviceId: string): Promise<AttendanceRecord[]> {
+  async getAttendanceLogs(deviceId: string, fullSync: boolean = false): Promise<AttendanceRecord[]> {
     const device = this.devices.get(deviceId);
     if (!device) {
       throw new Error(`Device ${deviceId} not connected`);
     }
 
     try {
-      const result = await device.getAttendances();
+      // For full sync, try to get all available records
+      let result;
+      if (fullSync) {
+        console.log(`Performing FULL SYNC for device ${deviceId} - attempting to retrieve all historical records`);
+        // Try different methods to get complete data
+        try {
+          result = await device.getAttendances(0); // Some devices support a parameter for all records
+        } catch (e) {
+          console.log('Method with parameter failed, trying standard method...');
+          result = await device.getAttendances();
+        }
+      } else {
+        result = await device.getAttendances();
+      }
 
       if (!result) {
         console.log(`No attendance logs received from device ${deviceId}.`);
@@ -187,15 +202,46 @@ export class ZKDeviceManager {
     }
   }
 
-  async syncAttendanceData(deviceId: string): Promise<AttendanceRecord[]> {
+  async syncAttendanceData(deviceId: string, fullSync: boolean = false): Promise<AttendanceRecord[]> {
     try {
-      const logs = await this.getAttendanceLogs(deviceId);
-      console.log(`Retrieved ${logs.length} attendance records from device ${deviceId}`);
+      const logs = await this.getAttendanceLogs(deviceId, fullSync);
+      console.log(`Retrieved ${logs.length} attendance records from device ${deviceId}${fullSync ? ' (FULL SYNC)' : ''}`);
       return logs;
     } catch (error) {
       console.error(`Error syncing attendance data from device ${deviceId}:`, error);
       return [];
     }
+  }
+
+  async fullSyncAllDevices(): Promise<{ [deviceId: string]: number }> {
+    const results: { [deviceId: string]: number } = {};
+    const devices = await db.select().from(biometricDevices);
+    
+    for (const device of devices) {
+      try {
+        if (!this.isDeviceConnected(device.deviceId)) {
+          const connected = await this.connectDevice(device.deviceId, {
+            ip: device.ip,
+            port: device.port,
+            timeout: 5000,
+            inport: 1,
+          });
+          if (!connected) {
+            console.warn(`Could not connect to device ${device.deviceId} for full sync`);
+            results[device.deviceId] = 0;
+            continue;
+          }
+        }
+        
+        const logs = await this.syncAttendanceData(device.deviceId, true);
+        results[device.deviceId] = logs.length;
+      } catch (error) {
+        console.error(`Full sync failed for device ${device.deviceId}:`, error);
+        results[device.deviceId] = 0;
+      }
+    }
+    
+    return results;
   }
 
   getConnectedDevices(): string[] {
