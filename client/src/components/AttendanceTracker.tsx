@@ -234,10 +234,20 @@ export default function AttendanceTracker() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.checkIn ? new Date(record.checkIn).toTimeString().slice(0, 5) : "-"}
+                        {record.checkIn ? (() => {
+                          const date = new Date(record.checkIn);
+                          const hours = date.getUTCHours().toString().padStart(2, '0');
+                          const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+                          return `${hours}:${minutes}`;
+                        })() : "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.checkOut ? new Date(record.checkOut).toTimeString().slice(0, 5) : "-"}
+                        {record.checkOut ? (() => {
+                          const date = new Date(record.checkOut);
+                          const hours = date.getUTCHours().toString().padStart(2, '0');
+                          const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+                          return `${hours}:${minutes}`;
+                        })() : "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {record.workingHours || "-"}
