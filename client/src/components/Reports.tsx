@@ -428,6 +428,9 @@ export default function Reports() {
         case 'monthly-absence':
           reportTitle = 'Monthly Absence Report';
           break;
+        case 'individual-offer':
+          reportTitle = 'Individual 1/4 Offer Report';
+          break;
         default:
           reportTitle = 'Attendance Report';
       }
@@ -763,6 +766,10 @@ export default function Reports() {
           data = monthlyAbsenceData;
           filename = `monthly-absence-${startDate}-to-${endDate}`;
           break;
+        case "individual-offer":
+          data = individualOfferData;
+          filename = `individual-offer-${startDate}-to-${endDate}`;
+          break;
         default:
           throw new Error("Unknown report type");
       }
@@ -856,6 +863,9 @@ export default function Reports() {
         break;
       case 'monthly-absence':
         reportTitle = 'Monthly Absence Report';
+        break;
+      case 'individual-offer':
+        reportTitle = 'Individual 1/4 Offer Report';
         break;
       default:
         reportTitle = 'Attendance Report';
