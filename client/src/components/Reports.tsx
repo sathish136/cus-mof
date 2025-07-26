@@ -317,11 +317,15 @@ export default function Reports() {
         data = monthlyAbsenceData;
         filename = `monthly-absence-${startDate}-to-${endDate}`;
         break;
+      case "monthly-ot":
+        data = monthlyOvertimeData;
+        filename = `monthly-ot-${startDate}-to-${endDate}`;
+        break;
       default:
         return;
     }
 
-    if (!data || data.length === 0) {
+    if (!data || (Array.isArray(data) && data.length === 0)) {
       alert("No data available to export");
       return;
     }
@@ -331,11 +335,29 @@ export default function Reports() {
   };
 
   const handleExportToExcel = () => {
-    if (!previewData) return;
+    if (!previewData) {
+      console.error('No preview data available');
+      alert("No preview data available for export");
+      return;
+    }
     
     const { data, filename, reportType } = previewData;
     
     try {
+      // Additional validation
+      if (!data) {
+        console.error('Export data is null or undefined');
+        alert("Export data is not available");
+        return;
+      }
+      
+      if (Array.isArray(data) && data.length === 0) {
+        console.error('Export data array is empty');
+        alert("No data records found to export");
+        return;
+      }
+      
+      console.log(`Exporting ${reportType} with ${Array.isArray(data) ? data.length : 'non-array'} records`);
       // Get current date and time for report generation - same as PDF format
       const now = new Date();
       const reportGeneratedTime = now.toLocaleString('en-GB', {
@@ -453,7 +475,7 @@ export default function Reports() {
         worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
       } else if (reportType === "offer-attendance") {
         // Special handling for offer-attendance report
-        const worksheetData = [];
+        worksheetData.length = 0; // Clear previous data
         
         // Add headers
         const headers = [
@@ -501,8 +523,10 @@ export default function Reports() {
       saveAs(blob, `${filename}.xlsx`);
       setIsPreviewOpen(false);
     } catch (error) {
-      console.error("Export failed:", error);
-      alert("Export failed. Please try again.");
+      console.error("Excel export failed:", error);
+      console.error("Report type:", reportType);
+      console.error("Data structure:", data);
+      alert(`Excel export failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     }
   };
 
@@ -549,7 +573,7 @@ export default function Reports() {
           throw new Error("Unknown report type");
       }
 
-      if (!data || data.length === 0) {
+      if (!data || (Array.isArray(data) && data.length === 0)) {
         alert("No data available to export");
         return;
       }
@@ -558,8 +582,8 @@ export default function Reports() {
         exportToPDF(data, filename, reportType);
       }
     } catch (error) {
-      console.error("Export failed:", error);
-      alert("Export failed. Please try again.");
+      console.error("PDF export failed:", error);
+      alert(`PDF export failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     }
   };
 
