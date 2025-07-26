@@ -1246,7 +1246,7 @@ export default function Settings() {
                         variant="outline" 
                         size="sm"
                         onClick={() => {
-                          if (window.confirm('Are you sure you want to delete this device? This action cannot be undone.')) {
+                          if (window.confirm(`Are you sure you want to delete device "${device.deviceId}"?\n\nThis action cannot be undone and will permanently remove the device from the system.`)) {
                             deleteDeviceMutation.mutate(device.id);
                           }
                         }}

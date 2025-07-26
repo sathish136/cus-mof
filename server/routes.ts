@@ -1682,10 +1682,10 @@ router.delete("/api/biometric-devices/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     await db.delete(biometricDevices).where(eq(biometricDevices.id, id));
-    res.status(204).send();
+    res.json({ success: true, message: "Device deleted successfully" });
   } catch (error) {
     console.error("Failed to delete biometric device:", error);
-    res.status(500).json({ message: "Failed to delete biometric device" });
+    res.status(500).json({ success: false, message: "Failed to delete biometric device" });
   }
 });
 
