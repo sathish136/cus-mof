@@ -3471,8 +3471,8 @@ router.get("/api/reports/individual-monthly", async (req, res) => {
           inTime = attendanceRecord.checkIn.toTimeString().slice(0, 5); // HH:MM format
           
           // Check if late based on group policy
-          const inTimeHour = checkIn.getHours();
-          const inTimeMinute = checkIn.getMinutes();
+          const inTimeHour = attendanceRecord.checkIn.getHours();
+          const inTimeMinute = attendanceRecord.checkIn.getMinutes();
           const isGroupA = emp.employeeGroup === 'group_a';
           const lateThreshold = isGroupA ? 9 * 60 : 8 * 60 + 15; // 9:00 AM for Group A, 8:15 AM for Group B
           const halfDayThreshold = isGroupA ? 10 * 60 : 9 * 60 + 30; // 10:00 AM for Group A, 9:30 AM for Group B
@@ -3492,7 +3492,7 @@ router.get("/api/reports/individual-monthly", async (req, res) => {
           
           // Calculate total hours
           if (attendanceRecord.checkIn) {
-            const diffMs = checkOut.getTime() - new Date(attendanceRecord.checkIn).getTime();
+            const diffMs = attendanceRecord.checkOut.getTime() - attendanceRecord.checkIn.getTime();
             const diffHrs = diffMs / (1000 * 60 * 60);
             totalHours = diffHrs.toFixed(2);
             
