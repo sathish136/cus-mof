@@ -1984,6 +1984,12 @@ const findEmployeeId = (uid: string | number): string | null => {
         continue;
       }
 
+      // Debug: Log what we're about to store in database
+      console.log(`Storing attendance for employee ${record.employeeId} on ${record.date.toISOString().split('T')[0]}:`);
+      console.log(`  Check-in UTC: ${record.checkIn.toISOString()}`);
+      console.log(`  Check-out UTC: ${record.checkOut.toISOString()}`);
+      console.log(`  Working hours: ${workingHours}`);
+      
       // Only include fields that exist in the attendance schema
       const attendanceRecord: typeof attendance.$inferInsert = {
         employeeId: record.employeeId,
