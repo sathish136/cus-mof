@@ -444,45 +444,39 @@ export default function Reports() {
           days.push(new Date(d));
         }
 
-        // Process each employee separately (like your attached image format)
-        data.forEach((emp: any) => {
-          // Employee header row
+        // Process each employee separately with proper timing format
+        data.forEach((emp: any, empIndex: number) => {
+          // Employee header with proper spacing
+          worksheetData.push([]);
           worksheetData.push([
             `Name: ${emp.fullName}`,
             `EMP ID: ${emp.employeeId}`,
             `Department: ${emp.department || 'Unassigned'}`,
             `Group: ${emp.employeeGroup === 'group_a' ? 'Group A' : 'Group B'}`
           ]);
+          worksheetData.push([]);
           
-          // Day headers (Tue, Wed, Thu, etc.)
-          const dayHeaders = [''];
+          // Create headers with proper alignment
+          const headers = [''];
+          const dateNumbers = [''];
+          
           days.forEach(day => {
             const dayName = day.toLocaleDateString('en-GB', { weekday: 'short' });
-            dayHeaders.push(dayName);
+            const dayNum = day.getDate();
+            headers.push(dayName);
+            dateNumbers.push(dayNum.toString());
           });
-          worksheetData.push(dayHeaders);
           
-          // Date numbers
-          const dateRow = [''];
-          days.forEach(day => {
-            dateRow.push(day.getDate().toString());
-          });
-          worksheetData.push(dateRow);
+          worksheetData.push(headers);
+          worksheetData.push(dateNumbers);
           
-          // In Time row
+          // In Time row with proper formatting
           const inTimeRow = ['In Time'];
           days.forEach(day => {
-            const dateKey = day.toISOString().split('T')[0];
-            const dayData = emp.dailyData?.[dateKey];
+            const dayKey = day.getDate();
+            const dayData = emp.dailyData?.[dayKey];
             if (dayData?.inTime) {
-              // Format time from 24hr to 12hr with just hours:minutes
-              const time = new Date(`2000-01-01T${dayData.inTime}`);
-              const formattedTime = time.toLocaleTimeString('en-GB', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false 
-              });
-              inTimeRow.push(formattedTime);
+              inTimeRow.push(dayData.inTime);
             } else {
               inTimeRow.push('');
             }
@@ -492,16 +486,10 @@ export default function Reports() {
           // Out Time row
           const outTimeRow = ['Out Time'];
           days.forEach(day => {
-            const dateKey = day.toISOString().split('T')[0];
-            const dayData = emp.dailyData?.[dateKey];
+            const dayKey = day.getDate();
+            const dayData = emp.dailyData?.[dayKey];
             if (dayData?.outTime) {
-              const time = new Date(`2000-01-01T${dayData.outTime}`);
-              const formattedTime = time.toLocaleTimeString('en-GB', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false 
-              });
-              outTimeRow.push(formattedTime);
+              outTimeRow.push(dayData.outTime);
             } else {
               outTimeRow.push('');
             }
@@ -511,10 +499,9 @@ export default function Reports() {
           // Worked Hours row
           const workedHoursRow = ['Worked Hours'];
           days.forEach(day => {
-            const dateKey = day.toISOString().split('T')[0];
-            const dayData = emp.dailyData?.[dateKey];
+            const dayKey = day.getDate();
+            const dayData = emp.dailyData?.[dayKey];
             if (dayData?.workedHours) {
-              // Use the already formatted workedHours from backend (HH:MM format)
               workedHoursRow.push(dayData.workedHours);
             } else {
               workedHoursRow.push('00:00');
@@ -523,24 +510,14 @@ export default function Reports() {
           worksheetData.push(workedHoursRow);
           
           // Status row
-          const statusRow = ['Status'];
+          const statusRow = ['Status'];  
           days.forEach(day => {
-            const dateKey = day.toISOString().split('T')[0];
-            const dayData = emp.dailyData?.[dateKey];
-            if (dayData) {
-              // Convert status to single letter codes like your image
-              let statusCode = '';
-              switch(dayData.status?.toLowerCase()) {
-                case 'present': statusCode = 'P'; break;
-                case 'absent': statusCode = 'A'; break;
-                case 'late': statusCode = 'L'; break;
-                case 'half day': statusCode = 'HL'; break;
-                case 'half_day': statusCode = 'HL'; break;
-                default: statusCode = dayData.status || 'A';
-              }
-              statusRow.push(statusCode);
+            const dayKey = day.getDate();
+            const dayData = emp.dailyData?.[dayKey];
+            if (dayData?.status) {
+              statusRow.push(dayData.status);
             } else {
-              statusRow.push('A'); // Absent if no data
+              statusRow.push('A');
             }
           });
           worksheetData.push(statusRow);
@@ -548,26 +525,17 @@ export default function Reports() {
           // Overtime row
           const overtimeRow = ['Overtime'];
           days.forEach(day => {
-            const dateKey = day.toISOString().split('T')[0];
-            const dayData = emp.dailyData?.[dateKey];
-            if (dayData?.workedHours) {
-              // Calculate overtime based on worked hours vs required hours
-              const workedTime = dayData.workedHours.split(':');
-              const workedHours = parseFloat(workedTime[0]) + parseFloat(workedTime[1]) / 60;
-              const requiredHours = emp.employeeGroup === 'group_a' ? 7.75 : 8.75;
-              const overtime = Math.max(0, workedHours - requiredHours);
-              if (overtime > 0) {
-                overtimeRow.push(overtime.toFixed(2));
-              } else {
-                overtimeRow.push('-');
-              }
+            const dayKey = day.getDate();
+            const dayData = emp.dailyData?.[dayKey];
+            if (dayData?.overtimeHours && parseFloat(dayData.overtimeHours) > 0) {
+              overtimeRow.push(dayData.overtimeHours);
             } else {
               overtimeRow.push('-');
             }
           });
           worksheetData.push(overtimeRow);
           
-          // Empty row for separation between employees
+          // Add spacing between employees
           worksheetData.push([]);
         });
         
@@ -1057,29 +1025,116 @@ export default function Reports() {
     `;
 
     if (reportType === "monthly-attendance") {
-      // Special handling for monthly attendance
-      htmlContent += "<thead><tr><th class='col-employee-id'>Employee ID</th><th class='col-name'>Name</th><th class='col-department'>Department</th><th class='col-group'>Group</th>";
-      
-      const firstEmployee = data[0];
-      if (firstEmployee?.dailyData) {
-        const dateColumns = Object.keys(firstEmployee.dailyData).sort();
-        dateColumns.forEach(date => {
-          const dateObj = new Date(date);
-          htmlContent += `<th class='col-date'>${dateObj.getDate()}</th>`;
-        });
-        htmlContent += "</tr></thead><tbody>";
-        
-        data.forEach(emp => {
-          htmlContent += `<tr><td class='col-employee-id'>${emp.employeeId}</td><td class='col-name'>${emp.fullName}</td><td class='col-department'>${emp.department || ""}</td><td class='col-group'>${emp.employeeGroup || ""}</td>`;
-          dateColumns.forEach(date => {
-            const dayData = emp.dailyData[date];
-            const status = dayData?.status || "A";
-            const statusClass = status === "P" ? "status-p" : status === "A" ? "status-a" : "status-hl";
-            htmlContent += `<td class="col-date ${statusClass}">${status}</td>`;
-          });
-          htmlContent += "</tr>";
-        });
+      // Special handling for monthly attendance with timing details
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const days: Date[] = [];
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        days.push(new Date(d));
       }
+
+      data.forEach((emp: any, empIndex: number) => {
+        htmlContent += `
+          <div class="employee-section" style="margin-bottom: 30px; page-break-inside: avoid;">
+            <div class="employee-header" style="background: #f5f5f5; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc;">
+              <strong>Name: ${emp.fullName} | EMP ID: ${emp.employeeId} | Department: ${emp.department || 'Unassigned'} | Group: ${emp.employeeGroup === 'group_a' ? 'Group A' : 'Group B'}</strong>
+            </div>
+            
+            <table class="timing-table" style="width: 100%; border-collapse: collapse; font-size: 9px;">
+              <thead>
+                <tr style="background-color: #e5e7eb;">
+                  <th style="border: 1px solid #000; padding: 4px; text-align: left; width: 80px;"></th>`;
+        
+        days.forEach(day => {
+          const dayName = day.toLocaleDateString('en-GB', { weekday: 'short' });
+          htmlContent += `<th style="border: 1px solid #000; padding: 2px; text-align: center; font-size: 8px;">${dayName}</th>`;
+        });
+        
+        htmlContent += `
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                  <th style="border: 1px solid #000; padding: 4px; text-align: left;"></th>`;
+        
+        days.forEach(day => {
+          htmlContent += `<th style="border: 1px solid #000; padding: 2px; text-align: center; font-size: 8px;">${day.getDate()}</th>`;
+        });
+        
+        htmlContent += `
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 4px; font-weight: bold; background-color: #f9fafb;">In Time</td>`;
+        
+        days.forEach(day => {
+          const dayKey = day.getDate();
+          const dayData = emp.dailyData?.[dayKey];
+          const inTime = dayData?.inTime || '';
+          htmlContent += `<td style="border: 1px solid #000; padding: 2px; text-align: center; font-size: 8px;">${inTime}</td>`;
+        });
+        
+        htmlContent += `
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 4px; font-weight: bold; background-color: #f9fafb;">Out Time</td>`;
+        
+        days.forEach(day => {
+          const dayKey = day.getDate();
+          const dayData = emp.dailyData?.[dayKey];
+          const outTime = dayData?.outTime || '';
+          htmlContent += `<td style="border: 1px solid #000; padding: 2px; text-align: center; font-size: 8px;">${outTime}</td>`;
+        });
+        
+        htmlContent += `
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 4px; font-weight: bold; background-color: #f9fafb;">Worked Hours</td>`;
+        
+        days.forEach(day => {
+          const dayKey = day.getDate();
+          const dayData = emp.dailyData?.[dayKey];
+          const workedHours = dayData?.workedHours || '00:00';
+          htmlContent += `<td style="border: 1px solid #000; padding: 2px; text-align: center; font-size: 8px;">${workedHours}</td>`;
+        });
+        
+        htmlContent += `
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 4px; font-weight: bold; background-color: #f9fafb;">Status</td>`;
+        
+        days.forEach(day => {
+          const dayKey = day.getDate();
+          const dayData = emp.dailyData?.[dayKey];
+          const status = dayData?.status || 'A';
+          htmlContent += `<td style="border: 1px solid #000; padding: 2px; text-align: center; font-weight: bold; font-size: 8px;">${status}</td>`;
+        });
+        
+        htmlContent += `
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000; padding: 4px; font-weight: bold; background-color: #f9fafb;">Overtime</td>`;
+        
+        days.forEach(day => {
+          const dayKey = day.getDate();
+          const dayData = emp.dailyData?.[dayKey];
+          const overtime = (dayData?.overtimeHours && parseFloat(dayData.overtimeHours) > 0) ? dayData.overtimeHours : '-';
+          htmlContent += `<td style="border: 1px solid #000; padding: 2px; text-align: center; color: #f59e0b; font-weight: bold; font-size: 8px;">${overtime}</td>`;
+        });
+        
+        htmlContent += `
+                </tr>
+              </tbody>
+            </table>
+          </div>`;
+        
+        // Add page break between employees if not the last one
+        if (empIndex < data.length - 1) {
+          htmlContent += '<div style="page-break-before: always;"></div>';
+        }
+      });
+      
+      // Close the main wrapper for monthly attendance
+      htmlContent += '</div>';
     } else {
       // Standard table export with proper alignment
       const headers = Object.keys(data[0]);
