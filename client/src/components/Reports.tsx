@@ -569,6 +569,18 @@ export default function Reports() {
           data = monthlyOvertimeData;
           filename = `monthly-overtime-${startDate}-to-${endDate}`;
           break;
+        case "employee-punch-times":
+          data = punchTimesData;
+          filename = `employee-punch-times-${startDate}-to-${endDate}`;
+          break;
+        case "individual-monthly":
+          data = individualMonthlyData;
+          filename = `individual-monthly-${startDate}-to-${endDate}`;
+          break;
+        case "monthly-absence":
+          data = monthlyAbsenceData;
+          filename = `monthly-absence-${startDate}-to-${endDate}`;
+          break;
         default:
           throw new Error("Unknown report type");
       }
@@ -641,6 +653,27 @@ export default function Reports() {
         break;
       case 'monthly-attendance':
         reportTitle = 'Monthly Attendance Sheet';
+        break;
+      case 'offer-attendance':
+        reportTitle = '1/4 Offer-Attendance Report';
+        break;
+      case 'late-arrival':
+        reportTitle = 'Late Arrival Report';
+        break;
+      case 'half-day':
+        reportTitle = 'Half Day Report';
+        break;
+      case 'short-leave-usage':
+        reportTitle = 'Short Leave Usage Report';
+        break;
+      case 'employee-punch-times':
+        reportTitle = 'Employee Punch Times Report';
+        break;
+      case 'individual-monthly':
+        reportTitle = 'Individual Employee Monthly Report';
+        break;
+      case 'monthly-absence':
+        reportTitle = 'Monthly Absence Report';
         break;
       default:
         reportTitle = 'Attendance Report';
