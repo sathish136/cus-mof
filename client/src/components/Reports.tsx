@@ -513,13 +513,11 @@ export default function Reports() {
           days.forEach(day => {
             const dateKey = day.toISOString().split('T')[0];
             const dayData = emp.dailyData?.[dateKey];
-            if (dayData?.totalHours) {
-              // Format as HH:MM
-              const hours = Math.floor(parseFloat(dayData.totalHours));
-              const minutes = Math.round((parseFloat(dayData.totalHours) - hours) * 60);
-              workedHoursRow.push(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+            if (dayData?.workedHours) {
+              // Use the already formatted workedHours from backend (HH:MM format)
+              workedHoursRow.push(dayData.workedHours);
             } else {
-              workedHoursRow.push('');
+              workedHoursRow.push('00:00');
             }
           });
           worksheetData.push(workedHoursRow);
@@ -552,10 +550,19 @@ export default function Reports() {
           days.forEach(day => {
             const dateKey = day.toISOString().split('T')[0];
             const dayData = emp.dailyData?.[dateKey];
-            if (dayData?.overtimeHours && parseFloat(dayData.overtimeHours) > 0) {
-              overtimeRow.push(parseFloat(dayData.overtimeHours).toFixed(2));
+            if (dayData?.workedHours) {
+              // Calculate overtime based on worked hours vs required hours
+              const workedTime = dayData.workedHours.split(':');
+              const workedHours = parseFloat(workedTime[0]) + parseFloat(workedTime[1]) / 60;
+              const requiredHours = emp.employeeGroup === 'group_a' ? 7.75 : 8.75;
+              const overtime = Math.max(0, workedHours - requiredHours);
+              if (overtime > 0) {
+                overtimeRow.push(overtime.toFixed(2));
+              } else {
+                overtimeRow.push('-');
+              }
             } else {
-              overtimeRow.push('');
+              overtimeRow.push('-');
             }
           });
           worksheetData.push(overtimeRow);
