@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Settings as SettingsIcon, Wifi, MapPin, Plus, Edit, Trash2, RefreshCw, Activity, AlertCircle, Users, ChevronRight, Building2, Building, User, Shield, Key, FileText, HelpCircle, CheckCircle, XCircle, Clock, Mail, Database } from "lucide-react";
+import { Settings as SettingsIcon, Wifi, MapPin, Plus, Edit, Trash2, RefreshCw, Activity, AlertCircle, Users, ChevronRight, Building2, Building, User, Shield, Key, FileText, HelpCircle, CheckCircle, XCircle, Clock, Mail, Database, Power, WifiOff } from "lucide-react";
 import { Link } from "wouter";
 import { useLicense } from "@/hooks/useLicense";
 import { LicenseInfo } from "@/components/LicenseInfo";
@@ -314,6 +314,32 @@ export default function Settings() {
       toast({
         title: "Disconnection Failed",
         description: `Failed to disconnect from device ${deviceId}: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteDeviceMutation = useMutation({
+    mutationFn: async (deviceId: number) => {
+      const response = await fetch(`/api/biometric-devices/${deviceId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete device");
+      return response.json();
+    },
+    onSuccess: (_, deviceId) => {
+      queryClient.setQueryData(['/api/biometric-devices'], (oldData: BiometricDevice[] | undefined) => {
+        return oldData ? oldData.filter(device => device.id !== deviceId) : [];
+      });
+      toast({
+        title: "Success",
+        description: "Biometric device deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete device: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -1169,7 +1195,7 @@ export default function Settings() {
                         className="text-red-600 border-red-200 hover:bg-red-50"
                         title="Disconnect from ZK Device"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Power className="w-4 h-4" />
                       </Button>
                       <Button 
                         variant="outline" 
@@ -1215,6 +1241,20 @@ export default function Settings() {
                           <RefreshCw className="w-4 h-4 animate-spin" /> : 
                           <Users className="w-4 h-4" />
                         }
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to delete this device? This action cannot be undone.')) {
+                            deleteDeviceMutation.mutate(device.id);
+                          }
+                        }}
+                        disabled={deleteDeviceMutation.isPending}
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        title="Delete Device"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
