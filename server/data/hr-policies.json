@@ -1,0 +1,27 @@
+{
+  "policies": {
+    "attendance_calculation_guidelines": {
+      "title": "1/4 Offer – Attendance Calculation Guidelines",
+      "categories": {
+        "category_a": {
+          "name": "Category A",
+          "start_time": "16:15",
+          "include_government_holidays": true,
+          "include_saturdays": true,
+          "exclude_holidays": true,
+          "exclude_delays": true,
+          "calculation_per_day_of_week": true
+        },
+        "category_b": {
+          "name": "Category B",
+          "start_time": "16:45",
+          "include_government_holidays": true,
+          "include_saturdays": true,
+          "exclude_holidays": true,
+          "exclude_delays": true,
+          "calculation_per_day_of_week": true
+        }
+      }
+    }
+  }
+}

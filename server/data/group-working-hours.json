@@ -1,0 +1,70 @@
+{
+  "groupA": {
+    "startTime": "08:30",
+    "endTime": "16:15",
+    "durationMinutes": 450,
+    "minHoursForOT": 9.5,
+    "lateArrivalPolicy": {
+      "gracePeriodUntil": "09:00",
+      "halfDayAfter": "10:00",
+      "halfDayBefore": "14:45"
+    },
+    "shortLeavePolicy": {
+      "morningStart": "08:30",
+      "morningEnd": "10:00",
+      "eveningStart": "14:45",
+      "eveningEnd": "16:15",
+      "maxPerMonth": 2,
+      "preApprovalRequired": true,
+      "minimumWorkingHoursRequired": true
+    },
+    "halfDayRule": {
+      "appliesAfter": "10:00",
+      "appliesBefore": "14:45",
+      "shortLeaveExcusesHalfDay": false
+    },
+    "overtimePolicy": {
+      "normalDay": {
+        "minHoursForOT": 7.5,
+        "saturdaySundayFullOT": true
+      },
+      "holiday": {
+        "allHoursAsOT": true
+      }
+    }
+  },
+  "groupB": {
+    "startTime": "08:00",
+    "endTime": "16:45",
+    "durationMinutes": 525,
+    "minHoursForOT": 8.75,
+    "lateArrivalPolicy": {
+      "gracePeriodUntil": "08:15",
+      "halfDayAfter": "09:30",
+      "halfDayBefore": "15:15",
+      "shortLeaveAllowance": true
+    },
+    "shortLeavePolicy": {
+      "morningStart": "08:00",
+      "morningEnd": "09:30",
+      "eveningStart": "15:15",
+      "eveningEnd": "16:45",
+      "maxPerMonth": 2,
+      "preApprovalRequired": true
+    },
+    "halfDayRule": {
+      "appliesAfter": "09:30",
+      "appliesBefore": "15:15"
+    },
+    "overtimePolicy": {
+      "normalDay": {
+        "minHoursForOT": 8.75,
+        "saturdaySundayFullOT": true,
+        "preApprovalRequired": true
+      },
+      "holiday": {
+        "allHoursAsOT": true
+      }
+    }
+  }
+}

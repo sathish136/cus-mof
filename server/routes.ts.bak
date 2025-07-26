@@ -1,0 +1,874 @@
+import express from "express";
+import { z } from "zod";
+import ZKLib from "zklib-js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { and, eq, gte, lt, lte, desc } from "drizzle-orm";
+import { fileURLToPath } from 'url';
+import { sql } from "drizzle-orm";
+
+import { db } from "./db";
+import { zkDeviceManager } from "./zkdevice";
+import {
+  biometricDevices,
+  departments,
+  employees,
+  insertDepartmentSchema,
+  insertEmployeeSchema,
+  attendance,
+  insertAttendanceSchema,
+  leaveRequests,
+  insertLeaveRequestSchema,
+  overtimeRequests,
+  insertOvertimeRequestSchema,
+  insertBiometricDeviceSchema,
+} from "../shared/schema";
+
+const router = express.Router();
+
+// --- File Upload Setup ---
+// Use import.meta.url to get the directory path in ES modules, compatible with Windows
+const __filename = fileURLToPath(import.meta.url);
+const uploadDir = path.join(path.dirname(__filename), "..", "uploads");
+
+// Ensure upload directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// Serve static files from the 'uploads' directory
+router.use("/uploads", express.static(uploadDir));
+
+// --- Upload Route ---
+router.post("/api/upload", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded." });
+  }
+
+  const url = `/uploads/${req.file.filename}`;
+  res.status(200).json({ url });
+});
+
+// --- Department Routes ---
+router.get("/api/departments", async (req, res) => {
+  try {
+    const allDepartments = await db.select().from(departments);
+    res.json(allDepartments);
+  } catch (error) {
+    console.error("Failed to fetch departments:", error);
+    res.status(500).json({ message: "Failed to fetch departments" });
+  }
+});
+
+router.post("/api/departments", async (req, res) => {
+  try {
+    const parsedData = insertDepartmentSchema.parse(req.body);
+    const newDepartment = await db.insert(departments).values(parsedData).returning();
+    res.status(201).json(newDepartment[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Validation failed", details: error.errors });
+    }
+    console.error("Failed to create department:", error);
+    res.status(500).json({ message: "Failed to create department" });
+  }
+});
+
+// --- Employee Routes ---
+router.get("/api/employees", async (req, res) => {
+  try {
+    const result = await db
+      .select({
+        id: employees.id,
+        employeeId: employees.employeeId,
+        fullName: employees.fullName,
+        email: employees.email,
+        phone: employees.phone,
+        photoUrl: employees.photoUrl,
+        position: employees.position,
+        employeeGroup: employees.employeeGroup,
+        joinDate: employees.joinDate,
+        status: employees.status,
+        role: employees.role,
+        department: departments.name,
+        departmentId: departments.id,
+      })
+      .from(employees)
+      .leftJoin(departments, eq(employees.departmentId, departments.id));
+    res.json(result);
+  } catch (error) {
+    console.error("Failed to fetch employees:", error);
+    res.status(500).json({ message: "Failed to fetch employees" });
+  }
+});
+
+router.get("/api/employees/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const result = await db
+      .select({
+        id: employees.id,
+        employeeId: employees.employeeId,
+        fullName: employees.fullName,
+        email: employees.email,
+        phone: employees.phone,
+        photoUrl: employees.photoUrl,
+        position: employees.position,
+        employeeGroup: employees.employeeGroup,
+        joinDate: employees.joinDate,
+        status: employees.status,
+        role: employees.role,
+        department: departments.name,
+        departmentId: departments.id,
+      })
+      .from(employees)
+      .leftJoin(departments, eq(employees.departmentId, departments.id))
+      .where(eq(employees.id, id));
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+    res.json(result[0]);
+  } catch (error) {
+    console.error("Failed to fetch employee:", error);
+    res.status(500).json({ message: "Failed to fetch employee" });
+  }
+});
+
+router.post("/api/employees", upload.single("photo"), async (req, res) => {
+  try {
+    // Multer puts non-file fields in req.body. We need to parse numeric/date fields manually.
+    const parsedBody = {
+      ...req.body,
+      departmentId: parseInt(req.body.departmentId, 10),
+      joinDate: new Date(req.body.joinDate),
+    };
+
+    const validatedData = insertEmployeeSchema.parse(parsedBody);
+    let photoUrl: string | undefined = undefined;
+    if (req.file) {
+      photoUrl = `/uploads/${req.file.filename}`;
+    }
+
+    const employee = await db
+      .insert(employees)
+      .values({ ...validatedData, photoUrl })
+      .returning();
+    res.status(201).json(employee[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid data", details: error.errors });
+    }
+    console.error("Failed to create employee:", error);
+    res.status(500).json({ message: "Failed to create employee" });
+  }
+});
+
+router.put("/api/employees/:id", upload.single("photo"), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+
+    const parsedBody = {
+      ...req.body,
+      departmentId: req.body.departmentId ? parseInt(req.body.departmentId, 10) : undefined,
+      joinDate: req.body.joinDate ? new Date(req.body.joinDate) : undefined,
+    };
+
+    const updateSchema = insertEmployeeSchema.partial();
+    const parsedData = updateSchema.parse(parsedBody);
+
+    if (req.file) {
+      parsedData.photoUrl = `/uploads/${req.file.filename}`;
+    }
+
+    const updatedEmployee = await db.update(employees).set(parsedData).where(eq(employees.id, id)).returning();
+    if (updatedEmployee.length === 0) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+    res.json(updatedEmployee[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Validation failed", details: error.errors });
+    }
+    console.error(`Failed to update employee with id ${req.params.id}:`, error);
+    res.status(500).json({ message: "Failed to update employee" });
+  }
+});
+
+router.delete("/api/employees/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await db.delete(employees).where(eq(employees.id, id));
+    res.status(204).send();
+  } catch (error) {
+    console.error("Failed to delete employee:", error);
+    res.status(500).json({ message: "Failed to delete employee" });
+  }
+});
+
+// --- Attendance Routes ---
+router.get("/api/attendance", async (req, res) => {
+  try {
+    const { date, status } = z.object({
+      date: z.string().optional(),
+      status: z.enum(["all", "present", "absent", "late", "early_departure"]).optional(),
+    }).parse(req.query);
+
+    const queryDate = date ? new Date(date) : new Date();
+    queryDate.setHours(0, 0, 0, 0);
+
+    const nextDay = new Date(queryDate);
+    nextDay.setDate(queryDate.getDate() + 1);
+
+    const whereConditions = [
+      gte(attendance.date, queryDate),
+      lt(attendance.date, nextDay)
+    ];
+
+    if (status && status !== "all") {
+      whereConditions.push(eq(attendance.status, status));
+    }
+
+    const attendanceRecords = await db
+      .select()
+      .from(attendance)
+      .where(and(...whereConditions));
+
+    res.json(attendanceRecords);
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Validation failed', details: error.errors });
+    }
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post("/api/attendance", async (req, res) => {
+  try {
+    const validatedData = insertAttendanceSchema.parse(req.body);
+    const newRecord = await db.insert(attendance).values(validatedData).returning();
+    res.status(201).json(newRecord[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid data", details: error.errors });
+    }
+    console.error("Failed to create attendance record:", error);
+    res.status(500).json({ message: "Failed to create attendance record" });
+  }
+});
+
+// --- Leave Request Routes ---
+router.get("/api/leave-requests", async (req, res) => {
+  try {
+    const records = await db.select().from(leaveRequests).orderBy(desc(leaveRequests.startDate));
+    res.json(records);
+  } catch (error) {
+    console.error("Failed to fetch leave requests:", error);
+    res.status(500).json({ message: "Failed to fetch leave requests" });
+  }
+});
+
+router.post("/api/leave-requests", async (req, res) => {
+  try {
+    const validatedData = insertLeaveRequestSchema.parse(req.body);
+    const newRecord = await db.insert(leaveRequests).values(validatedData).returning();
+    res.status(201).json(newRecord[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid data", details: error.errors });
+    }
+    console.error("Failed to create leave request:", error);
+    res.status(500).json({ message: "Failed to create leave request" });
+  }
+});
+
+router.put("/api/leave-requests/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const validatedData = insertLeaveRequestSchema.partial().parse(req.body);
+    const updatedRecord = await db.update(leaveRequests).set(validatedData).where(eq(leaveRequests.id, id)).returning();
+    res.json(updatedRecord[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid data", details: error.errors });
+    }
+    console.error("Failed to update leave request:", error);
+    res.status(500).json({ message: "Failed to update leave request" });
+  }
+});
+
+// --- Overtime Request Routes ---
+router.get("/api/overtime-requests", async (req, res) => {
+  try {
+    const records = await db.select().from(overtimeRequests).orderBy(desc(overtimeRequests.date));
+    res.json(records);
+  } catch (error) {
+    console.error("Failed to fetch overtime requests:", error);
+    res.status(500).json({ message: "Failed to fetch overtime requests" });
+  }
+});
+
+router.post("/api/overtime-requests", async (req, res) => {
+  try {
+    const validatedData = insertOvertimeRequestSchema.parse(req.body);
+    const newRecord = await db.insert(overtimeRequests).values(validatedData).returning();
+    res.status(201).json(newRecord[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid data", details: error.errors });
+    }
+    console.error("Failed to create overtime request:", error);
+    res.status(500).json({ message: "Failed to create overtime request" });
+  }
+});
+
+router.put("/api/overtime-requests/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const validatedData = insertOvertimeRequestSchema.partial().parse(req.body);
+    const updatedRecord = await db.update(overtimeRequests).set(validatedData).where(eq(overtimeRequests.id, id)).returning();
+    res.json(updatedRecord[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid data", details: error.errors });
+    }
+    console.error("Failed to update overtime request:", error);
+    res.status(500).json({ message: "Failed to update overtime request" });
+  }
+});
+
+// --- Biometric Device Routes ---
+router.get("/api/biometric-devices", async (req, res) => {
+  try {
+    const devices = await db.select().from(biometricDevices);
+    res.json(devices);
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.post("/api/biometric-devices", async (req, res) => {
+  try {
+    const deviceData = insertBiometricDeviceSchema.parse(req.body);
+
+    const existingDevice = await db.query.biometricDevices.findFirst({
+      where: eq(biometricDevices.deviceId, deviceData.deviceId),
+    });
+
+    if (existingDevice) {
+      return res.status(409).json({ success: false, message: "Device with this ID already exists." });
+    }
+
+    const zk = new ZKLib(deviceData.ip, deviceData.port, 5200, 5000);
+    await zk.createSocket();
+    await zk.disconnect();
+
+    const newDevice = await db.insert(biometricDevices).values(deviceData).returning();
+    res.status(201).json(newDevice[0]);
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: "Invalid device data", errors: error.errors });
+    }
+    res.status(500).json({ success: false, message: "Could not connect to the device. Please check the IP and port." });
+  }
+});
+
+router.put("/api/biometric-devices/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const deviceData = insertBiometricDeviceSchema.partial().parse(req.body);
+
+    const updatedDevice = await db.update(biometricDevices).set(deviceData).where(eq(biometricDevices.id, id)).returning();
+    res.json(updatedDevice[0]);
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: "Invalid device data", errors: error.errors });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.delete("/api/biometric-devices/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await db.delete(biometricDevices).where(eq(biometricDevices.id, id));
+    res.status(204).send();
+  } catch (error) {
+    console.error("Failed to delete biometric device:", error);
+    res.status(500).json({ message: "Failed to delete biometric device" });
+  }
+});
+
+// --- ZK Device Routes ---
+router.post("/api/zk-devices/:deviceId/connect", async (req, res) => {
+  try {
+    const deviceId = req.params.deviceId;
+    const device = await db.query.biometricDevices.findFirst({
+      where: eq(biometricDevices.deviceId, deviceId),
+    });
+
+    if (!device) {
+      return res.status(404).json({ message: "Device not found" });
+    }
+
+    const isConnected = await zkDeviceManager.connectDevice(deviceId, {
+      ip: device.ip,
+      port: device.port,
+      timeout: 5000, // Default timeout
+      inport: 1, // Default inport
+    });
+    if (isConnected) {
+      res.json({ success: true, message: "Device connected successfully" });
+    } else {
+      res.status(500).json({ success: false, message: "Failed to connect to device" });
+    }
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.post("/api/zk-devices/:deviceId/disconnect", async (req, res) => {
+  try {
+    const deviceId = req.params.deviceId;
+    await zkDeviceManager.disconnectDevice(deviceId);
+    res.json({ success: true, message: "Device disconnected successfully" });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.get("/api/zk-devices/:deviceId/info", async (req, res) => {
+  try {
+    const deviceId = req.params.deviceId;
+    const info = await zkDeviceManager.getDeviceInfo(deviceId);
+    res.json({ success: true, info });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+
+router.post('/api/employees/import', async (req, res) => {
+  const importUsersSchema = z.object({
+    users: z.array(
+      z.object({
+        uid: z.string(),
+        name: z.string(),
+        role: z.number(),
+        password: z.string().optional(),
+        cardno: z.number().optional(),
+      })
+    ),
+    role: z.enum(["admin", "user"]),
+    employeeGroup: z.enum(["group_a", "group_b"]),
+  });
+
+  try {
+    const validated = importUsersSchema.safeParse(req.body);
+    if (!validated.success) {
+      return res.status(400).json({ success: false, message: "Invalid input", errors: validated.error.issues });
+    }
+
+    const existingEmployees = await db.query.employees.findMany();
+    const existingEmployeeIds = new Set(existingEmployees.map((e) => e.employeeId));
+
+    const newUsers = validated.data.users.filter((user) => !existingEmployeeIds.has(user.uid));
+
+    if (newUsers.length === 0) {
+      return res.status(200).json({ success: true, message: "All selected users already exist in the system." });
+    }
+
+    let defaultDepartment = await db.query.departments.findFirst({ where: eq(departments.name, "Unassigned") });
+    if (!defaultDepartment) {
+      const newDept = await db.insert(departments).values({ name: "Unassigned" }).returning();
+      defaultDepartment = newDept[0];
+    }
+
+    const employeesToInsert = newUsers.map((user) => {
+      // Log the user data for debugging
+      console.log('Importing user:', {
+        name: user.name,
+        uid: user.uid,
+        cardno: user.cardno
+      });
+      
+      // Use cardno as the primary ID if available, otherwise use uid
+      const employeeId = user.cardno ? String(user.cardno) : user.uid;
+      
+      return {
+        employeeId: employeeId,
+        fullName: user.name,
+        departmentId: defaultDepartment!.id,
+        employeeGroup: validated.data.employeeGroup,
+        joinDate: new Date(),
+        status: "active" as const,
+        role: validated.data.role,
+        // Store both the UID and cardno for reference
+        biometricDeviceId: user.uid,
+        cardNumber: user.cardno ? String(user.cardno) : null,
+      };
+    });
+
+    if (employeesToInsert.length > 0) {
+      await db.insert(employees).values(employeesToInsert);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully imported ${employeesToInsert.length} new employees.`,
+      importedCount: employeesToInsert.length,
+      skippedCount: validated.data.users.length - employeesToInsert.length,
+    });
+  } catch (error) {
+    console.error("Failed to import employees:", error);
+    res.status(500).json({ success: false, message: "An unexpected error occurred during import." });
+  }
+});
+
+router.post("/api/zk-devices/:deviceId/sync", async (req, res) => {
+  try {
+    const deviceId = req.params.deviceId;
+    const device = await db.query.biometricDevices.findFirst({
+      where: eq(biometricDevices.deviceId, deviceId),
+    });
+
+    if (!device) {
+      return res.status(404).json({ message: "Device not found" });
+    }
+
+    if (!zkDeviceManager.isDeviceConnected(deviceId)) {
+      const connected = await zkDeviceManager.connectDevice(deviceId, {
+        ip: device.ip,
+        port: device.port,
+        timeout: 5000,
+        inport: 1,
+      });
+      if (!connected) {
+        return res.status(500).json({ message: "Could not connect to device" });
+      }
+    }
+
+    const logs = await zkDeviceManager.syncAttendanceData(deviceId);
+
+    if (!logs || logs.length === 0) {
+      return res.json({ success: true, message: "No new attendance logs to sync." });
+    }
+
+    // Get all employees with their biometric IDs and card numbers
+    const allEmployees = await db.select({ 
+      id: employees.id, 
+      biometricDeviceId: employees.biometricDeviceId,
+      employeeId: employees.employeeId,
+      cardNumber: employees.cardNumber
+    }).from(employees);
+
+    console.log('Total employees in system:', allEmployees.length);
+    
+    // Debug: Log all employees with their IDs
+    console.log('All employees:', JSON.stringify(allEmployees, null, 2));
+    
+    // Get unique UIDs from logs
+    const logUids = [...new Set(logs.map(log => String(log.uid).trim()))];
+    console.log('Unique UIDs from device logs:', logUids);
+
+    // Create a map for all possible ID lookups
+    const idMaps = {
+      byEmployeeId: new Map<string, number>(),
+      byBiometricId: new Map<string, number>(),
+      byCardNumber: new Map<string, number>()
+    };
+
+    // Populate the lookup maps
+    allEmployees.forEach(emp => {
+      if (emp.employeeId) {
+        idMaps.byEmployeeId.set(String(emp.employeeId).trim(), emp.id);
+      }
+      if (emp.biometricDeviceId) {
+        idMaps.byBiometricId.set(String(emp.biometricDeviceId).trim(), emp.id);
+      }
+      if (emp.cardNumber) {
+        idMaps.byCardNumber.set(String(emp.cardNumber).trim(), emp.id);
+      }
+    });
+
+    // Function to find employee ID by UID using all possible mappings
+    const findEmployeeId = (uid: string): number | null => {
+      // Try direct biometric ID match first
+      if (idMaps.byBiometricId.has(uid)) {
+        return idMaps.byBiometricId.get(uid)!;
+      }
+      // Try employee ID match
+      if (idMaps.byEmployeeId.has(uid)) {
+        return idMaps.byEmployeeId.get(uid)!;
+      }
+      // Try card number match
+      if (idMaps.byCardNumber.has(uid)) {
+        return idMaps.byCardNumber.get(uid)!;
+      }
+      return null;
+    };
+
+    // Debug: Log matching employees
+    const matchingEmployees = logs
+      .map(log => ({
+        uid: log.uid,
+        employeeId: findEmployeeId(String(log.uid).trim())
+      }))
+      .filter(x => x.employeeId);
+
+    console.log(`Found ${matchingEmployees.length} matching employees out of ${logs.length} logs`);
+    if (matchingEmployees.length > 0) {
+      console.log('Sample matches:', matchingEmployees.slice(0, 5));
+    }
+    
+    // Debug: Log the first few log entries with more details
+    console.log('First 5 log entries with UID types:', logs.slice(0, 5).map(log => ({
+      uid: log.uid,
+      uidType: typeof log.uid,
+      timestamp: log.timestamp
+    })));
+
+    // Group logs by employee and date to find check-in and check-out
+    const attendanceMap = new Map<string, {
+      employeeId: number;
+      date: Date;
+      checkIn: Date;
+      checkOut: Date;
+      logs: any[];
+    }>();
+
+    // Process each log entry
+    for (const log of logs) {
+      const employeeDbId = findEmployeeId(String(log.uid).trim());
+      if (!employeeDbId) {
+        console.warn(`No employee found for UID: ${log.uid}`);
+        continue;
+      }
+
+      const logDate = new Date(log.timestamp);
+      const dateKey = `${employeeDbId}-${logDate.toISOString().split('T')[0]}`;
+      
+      // Initialize or update attendance record
+      if (!attendanceMap.has(dateKey)) {
+        attendanceMap.set(dateKey, {
+          employeeId: employeeDbId,
+          date: new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate()),
+          checkIn: log.timestamp,
+          checkOut: log.timestamp,
+          logs: [log]
+        });
+      } else {
+        const record = attendanceMap.get(dateKey)!;
+        record.logs.push(log);
+        // Update check-in/check-out times
+        if (log.timestamp < record.checkIn) record.checkIn = log.timestamp;
+        if (log.timestamp > record.checkOut) record.checkOut = log.timestamp;
+      }
+    }
+
+    // Prepare records for database insertion
+    const attendanceRecordsToInsert: (typeof attendance.$inferInsert)[] = [];
+    for (const [_, record] of attendanceMap) {
+      // Calculate working hours
+      const workingHours = (record.checkOut.getTime() - record.checkIn.getTime()) / (1000 * 60 * 60);
+      
+      // Skip if check-in/check-out spans multiple days
+      if (record.checkIn.toDateString() !== record.checkOut.toDateString()) {
+        console.warn(`Skipping record for employee ${record.employeeId} - check-in and check-out are on different days`);
+        continue;
+      }
+
+      attendanceRecordsToInsert.push({
+        employeeId: record.employeeId,
+        date: record.date,
+        checkIn: record.checkIn,
+        checkOut: record.checkOut,
+        status: 'present',
+        workingHours: workingHours.toFixed(2),
+      });
+    }
+
+    if (attendanceRecordsToInsert.length > 0) {
+      await db.insert(attendance)
+        .values(attendanceRecordsToInsert)
+        .onConflictDoUpdate({
+          target: [attendance.employeeId, attendance.date],
+          set: {
+            checkIn: sql`excluded.check_in`,
+            checkOut: sql`excluded.check_out`,
+            workingHours: sql`excluded.working_hours`,
+            status: sql`excluded.status`,
+          }
+        });
+    }
+
+    res.json({ success: true, message: `Attendance data synced successfully. ${attendanceRecordsToInsert.length} records processed.` });
+  } catch (error: any) {
+    console.error("Error during attendance sync:", error);
+    res.status(500).json({ success: false, message: error.message || "An internal error occurred during sync." });
+  }
+});
+
+router.get("/api/zk-devices/:deviceId/users", async (req, res) => {
+  const { deviceId } = req.params;
+  try {
+    const internalDevice = await db.query.biometricDevices.findFirst({ where: eq(biometricDevices.deviceId, deviceId) });
+    if (!internalDevice) {
+      return res.status(404).json({ success: false, message: "Device not found in database" });
+    }
+
+    if (!zkDeviceManager.isDeviceConnected(deviceId)) {
+      await zkDeviceManager.connectDevice(deviceId, {
+        ip: internalDevice.ip,
+        port: internalDevice.port ?? 4370,
+        timeout: 5000,
+        inport: 5200,
+      });
+    }
+    const users = await zkDeviceManager.getUsers(deviceId);
+    res.json(users);
+  } catch (e) {
+    console.error(`Failed to fetch users from device ${deviceId}:`, e);
+    res.status(500).json({ success: false, message: `Failed to fetch users from device: ${(e as Error).message}` });
+  }
+});
+
+router.post("/api/employees/:id/photo", upload.single("file"), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, message: "No file provided" });
+    }
+
+    const employee = await db.query.employees.findFirst({ where: eq(employees.id, id) });
+    if (!employee) {
+      return res.status(404).json({ success: false, message: "Employee not found" });
+    }
+
+    // In a real app, you'd save to a file storage service and get a URL
+    // For simplicity, we'll store a placeholder URL
+    const photoUrl = `/uploads/${id}-${Date.now()}${path.extname(file.originalname)}`;
+    
+    await db.update(employees).set({ photoUrl }).where(eq(employees.id, id));
+    res.status(200).json({ url: photoUrl });
+  } catch (error) {
+    console.error("Failed to upload employee photo:", error);
+    res.status(500).json({ success: false, message: "Failed to upload employee photo" });
+  }
+});
+
+router.post("/api/zk-devices/:deviceId/connect", async (req, res) => {
+  const { deviceId } = req.params;
+  try {
+    const device = await db.query.biometricDevices.findFirst({ where: eq(biometricDevices.deviceId, deviceId) });
+    if (!device) {
+      return res.status(404).json({ success: false, message: "Device not found" });
+    }
+
+    const deviceInfo = {
+      ip: device.ip,
+      port: device.port ?? 4370,
+      timeout: 5000,
+      inport: 5200, // This seems to be a fixed value in other parts of the code
+    };
+
+    const connected = await zkDeviceManager.connectDevice(deviceId, deviceInfo);
+    if (connected) {
+      res.json({ success: true, message: `Successfully connected to device ${deviceId}` });
+    } else {
+      res.status(500).json({ success: false, message: `Failed to connect to device ${deviceId}` });
+    }
+  } catch (error: any) {
+    console.error(`Error connecting to device ${deviceId}:`, error);
+    res.status(500).json({ success: false, message: error.message || "An internal error occurred" });
+  }
+});
+
+router.get("/api/zk-devices/:deviceId/logs", async (req, res) => {
+  const { deviceId } = req.params;
+  try {
+    const internalDevice = await db.query.biometricDevices.findFirst({ where: eq(biometricDevices.deviceId, deviceId) });
+    if (!internalDevice) {
+      return res.status(404).json({ success: false, message: "Device not found in database" });
+    }
+
+    const zkInstance = new ZKLib(internalDevice.ip, internalDevice.port ?? 4370, 5200, 5000);
+    await zkInstance.createSocket();
+    const logs = await zkInstance.getLogs();
+    await zkInstance.disconnect();
+
+    res.json(logs);
+  } catch (e) {
+    res.status(500).json({ success: false, message: "An error occurred while fetching logs from the device." });
+  }
+});
+
+router.get("/api/zk-devices/:deviceId/info", async (req, res) => {
+  const { deviceId } = req.params;
+  try {
+    const internalDevice = await db.query.biometricDevices.findFirst({ where: eq(biometricDevices.deviceId, deviceId) });
+    if (!internalDevice) {
+      return res.status(404).json({ success: false, message: "Device not found in database" });
+    }
+
+    const zkInstance = new ZKLib(internalDevice.ip, internalDevice.port ?? 4370, 5200, 5000);
+    await zkInstance.createSocket();
+    const info = await zkInstance.getInfo();
+    await zkInstance.disconnect();
+
+    res.json({ success: true, info });
+  } catch (e) {
+    console.error(`Failed to get info for device ${deviceId}:`, e);
+    res.status(500).json({ success: false, message: "An error occurred while fetching info from the device." });
+  }
+});
+
+router.delete("/api/zk-devices/:deviceId/logs", async (req, res) => {
+  const { deviceId } = req.params;
+  try {
+    const internalDevice = await db.query.biometricDevices.findFirst({ where: eq(biometricDevices.deviceId, deviceId) });
+    if (!internalDevice) {
+      return res.status(404).json({ success: false, message: "Device not found in database" });
+    }
+
+    const zkInstance = new ZKLib(internalDevice.ip, internalDevice.port ?? 4370, 5200, 5000);
+    await zkInstance.createSocket();
+    await zkInstance.clearLogs();
+    await zkInstance.disconnect();
+
+    res.status(204).send();
+  } catch (e) {
+    res.status(500).json({ success: false, message: "An error occurred while clearing logs from the device." });
+  }
+});
+
+router.get("/api/zk-devices/status", async (req, res) => {
+  try {
+    const connectedDevices = zkDeviceManager.getConnectedDevices();
+    res.json({ success: true, connectedDevices });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+export default router;
+
+export function registerRoutes(app: any) {
+  app.use(router);
+  return app;
+}
