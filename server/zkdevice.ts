@@ -101,17 +101,30 @@ export class ZKDeviceManager {
       // Debug: Log the first few raw log entries
       if (logs.length > 0) {
         console.log('First 5 raw log entries:', JSON.stringify(logs.slice(0, 5), null, 2));
+        console.log('Sample log fields:', Object.keys(logs[0] || {}));
       }
 
       const validRecords: AttendanceRecord[] = [];
       for (const log of logs) {
-        if (log && log.recordTime) {
+        if (log) {
+          // Skip entries with invalid year 2000 timestamps - these are usually empty/corrupted logs
           const timestamp = new Date(log.recordTime);
-          if (!isNaN(timestamp.getTime())) {
-            // Try both uid and deviceUserId to find the correct field
-            const uid = log.uid || log.deviceUserId || log.userId || log.id;
-            if (!uid) {
-              console.warn('Log entry has no UID field:', log);
+          if (!isNaN(timestamp.getTime()) && timestamp.getFullYear() >= 2020) {
+            // Try multiple possible UID field names
+            const uid = log.uid || log.deviceUserId || log.userId || log.id || log.userSn || log.user_id || log.employeeId;
+            
+            // If still no valid UID, skip this entry
+            if (!uid || uid === 0 || uid === "0" || uid === "") {
+              console.warn('Log entry has no valid UID field:', {
+                uid: log.uid,
+                deviceUserId: log.deviceUserId, 
+                userId: log.userId,
+                id: log.id,
+                userSn: log.userSn,
+                user_id: log.user_id,
+                employeeId: log.employeeId,
+                recordTime: log.recordTime
+              });
               continue;
             }
             
@@ -122,10 +135,15 @@ export class ZKDeviceManager {
               type: log.type ?? 0,
             });
           } else {
-            console.warn(`Skipping log with invalid recordTime:`, log);
+            // Only warn about invalid timestamps for recent years (not 2000)
+            if (timestamp.getFullYear() < 2020) {
+              console.warn(`Skipping log with old/invalid timestamp (year ${timestamp.getFullYear()}):`, log.recordTime);
+            } else {
+              console.warn(`Skipping log with invalid recordTime:`, log);
+            }
           }
         } else {
-          console.warn(`Skipping log with missing or invalid recordTime:`, log);
+          console.warn(`Skipping null/undefined log entry`);
         }
       }
       

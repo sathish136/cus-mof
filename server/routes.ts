@@ -51,6 +51,22 @@ let autoSyncSettings = {
 
 let autoSyncInterval: NodeJS.Timeout | null = null;
 
+// Helper function to find employee ID by biometric UID
+function findEmployeeId(uid: string): string | null {
+  // Try exact match with biometric_device_id first
+  const employeeByBiometric = db.query.employees.findFirst({
+    where: eq(employees.biometricDeviceId, uid),
+  });
+  
+  // Try exact match with employee_id
+  const employeeByEmpId = db.query.employees.findFirst({
+    where: eq(employees.employeeId, uid),
+  });
+  
+  // Return first match or null
+  return employeeByBiometric?.id || employeeByEmpId?.id || null;
+}
+
 // Auto-sync function to sync all devices
 async function performAutoSync() {
   try {
@@ -58,6 +74,7 @@ async function performAutoSync() {
     
     const devices = await db.select().from(biometricDevices);
     let totalSynced = 0;
+    let totalProcessed = 0;
     
     for (const device of devices) {
       try {
@@ -76,8 +93,121 @@ async function performAutoSync() {
 
         const logs = await zkDeviceManager.syncAttendanceData(device.deviceId);
         if (logs && logs.length > 0) {
+          console.log(`Processing ${logs.length} records from device ${device.deviceId}`);
+          
+          // Process attendance logs into database records (same logic as manual sync)
+          const attendanceMap = new Map();
+          const allEmployees = await db.select().from(employees);
+          
+          // Create lookup function for employee IDs
+          const findEmployeeIdLocal = (uid: string): string | null => {
+            // Try exact match with biometric_device_id first
+            const byBiometric = allEmployees.find(emp => emp.biometricDeviceId === uid);
+            if (byBiometric) return byBiometric.id;
+            
+            // Try exact match with employee_id
+            const byEmpId = allEmployees.find(emp => emp.employeeId === uid);
+            if (byEmpId) return byEmpId.id;
+            
+            return null;
+          };
+
+          for (const log of logs) {
+            const uid = String(log.uid).trim();
+            const employeeDbId = findEmployeeIdLocal(uid);
+            if (!employeeDbId) {
+              console.warn(`No employee found for UID: ${uid}`);
+              continue;
+            }
+
+            const logDate = new Date(log.timestamp);
+            const dateKey = `${employeeDbId}-${logDate.toISOString().split('T')[0]}`;
+            
+            // Initialize or update attendance record
+            if (!attendanceMap.has(dateKey)) {
+              attendanceMap.set(dateKey, {
+                employeeId: employeeDbId,
+                date: new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate()),
+                checkIn: log.timestamp,
+                checkOut: log.timestamp,
+                logs: [log]
+              });
+            } else {
+              const record = attendanceMap.get(dateKey)!;
+              record.logs.push(log);
+              // Update check-in/check-out times
+              if (log.timestamp < record.checkIn) record.checkIn = log.timestamp;
+              if (log.timestamp > record.checkOut) record.checkOut = log.timestamp;
+            }
+          }
+
+          // Prepare records for database insertion
+          const attendanceRecordsToInsert: (typeof attendance.$inferInsert)[] = [];
+          for (const [_, record] of attendanceMap) {
+            // Calculate working hours
+            const workingHours = ((record.checkOut.getTime() - record.checkIn.getTime()) / (1000 * 60 * 60)).toFixed(2);
+            
+            // Skip if check-in/check-out spans multiple days
+            if (record.checkIn.toDateString() !== record.checkOut.toDateString()) {
+              console.warn(`Skipping record for employee ${record.employeeId} - check-in and check-out are on different days`);
+              continue;
+            }
+
+            attendanceRecordsToInsert.push({
+              employeeId: record.employeeId,
+              date: record.date,
+              checkIn: record.checkIn,
+              checkOut: record.checkOut,
+              status: 'present',
+              workingHours: workingHours,
+              notes: '',
+              overtimeHours: null,
+            });
+          }
+
+          // Insert or update attendance records
+          for (const record of attendanceRecordsToInsert) {
+            try {
+              await db.transaction(async (tx) => {
+                // First try to update existing record
+                const updated = await tx
+                  .update(attendance)
+                  .set({
+                    checkIn: record.checkIn,
+                    checkOut: record.checkOut,
+                    workingHours: record.workingHours,
+                    status: record.status,
+                    notes: record.notes,
+                  })
+                  .where(
+                    and(
+                      eq(attendance.employeeId, record.employeeId),
+                      eq(attendance.date, record.date)
+                    )
+                  );
+
+                // If no rows were updated, insert a new record
+                if (updated.rowCount === 0) {
+                  await tx.insert(attendance).values({
+                    employeeId: record.employeeId,
+                    date: record.date,
+                    checkIn: record.checkIn,
+                    checkOut: record.checkOut,
+                    status: record.status,
+                    workingHours: record.workingHours,
+                    notes: record.notes,
+                    overtimeHours: null,
+                  });
+                }
+              });
+              totalProcessed++;
+            } catch (error) {
+              console.error('Error upserting attendance record during auto-sync:', error);
+            }
+          }
+          
           totalSynced += logs.length;
-          console.log(`Auto-synced ${logs.length} records from device ${device.deviceId}`);
+          console.log(`Auto-synced ${logs.length} raw records from device ${device.deviceId}, processed ${attendanceRecordsToInsert.length} attendance records`);
         }
       } catch (error) {
         console.error(`Auto-sync error for device ${device.deviceId}:`, error);
@@ -86,7 +216,7 @@ async function performAutoSync() {
     
     autoSyncSettings.lastSync = new Date();
     if (totalSynced > 0) {
-      console.log(`Auto-sync completed: ${totalSynced} total records processed`);
+      console.log(`Auto-sync completed: ${totalSynced} raw records retrieved, ${totalProcessed} attendance records saved to database`);
     }
   } catch (error) {
     console.error('Auto-sync failed:', error);

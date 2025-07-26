@@ -233,6 +233,10 @@ Changelog:
     - All API endpoints functional with real database connections
     - Updated license system support contact to support@liveu.lk and phone 0117780000
     - Added Live U Pvt Ltd logo to license validation screen
+    - Fixed attendance synchronization issue with biometric devices by improving UID field detection
+    - Enhanced log processing to handle various UID field formats (uid, deviceUserId, userSn, etc.)
+    - Added filtering to skip corrupted entries with year 2000 timestamps
+    - Improved debugging output for troubleshooting biometric device data formats
     - Migration completed successfully - system ready for full operation
     - Successfully migrated complete HR Attendance Management System from Replit Agent to standard Replit environment
     - Fixed cross-env dependency issue preventing application startup by installing missing cross-env package
