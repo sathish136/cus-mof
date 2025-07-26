@@ -455,3 +455,10 @@ Changelog:
     - Database truncation functionality verified working for fresh data import
     - Application server running successfully on port 5000 with corrected time display across all modules
     - Migration completed with full functionality and proper timezone handling
+  - 1/4 Hour OT Rounding Logic Implementation (July 26, 2025):
+    - Updated 1/4 Offer-Attendance Report overtime calculation to round down to nearest 15-minute blocks
+    - Implemented proper rounding for both regular overtime (after 4:15 PM Group A, 4:45 PM Group B) and weekend/holiday hours
+    - Example: 1 hour 17 minutes overtime becomes 1 hour 15 minutes (rounded down to nearest 15-min block)
+    - Updated both attendanceCalculator.ts and routes.ts offer-attendance API endpoint
+    - Enhanced frontend display to show 1/4 hour rounding policy in report description
+    - All OT calculations now follow: 1 hr, 1 hr 15 mins, 1 hr 30 mins, 1 hr 45 mins, 2 hrs, etc.

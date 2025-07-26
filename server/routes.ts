@@ -3411,7 +3411,12 @@ router.get('/api/reports/offer-attendance', async (req, res) => {
         // If checkout is after the overtime start time, calculate offer hours
         if (checkOutTime > overtimeStart) {
           const overtimeMs = checkOutTime.getTime() - overtimeStart.getTime();
-          offerHours = Math.max(0, overtimeMs / (1000 * 60 * 60)); // Convert to hours
+          const rawOfferHours = Math.max(0, overtimeMs / (1000 * 60 * 60)); // Convert to hours
+          
+          // Round down to the nearest 15-minute block (1 hr, 1 hr 15 mins, 1 hr 30 mins, 1 hr 45 mins, etc.)
+          const totalMinutes = Math.floor(rawOfferHours * 60);
+          const roundedMinutes = Math.floor(totalMinutes / 15) * 15;
+          offerHours = roundedMinutes / 60;
         }
         
         // Include government holidays and Saturdays (assuming Saturday is day 6)
@@ -3421,7 +3426,14 @@ router.get('/api/reports/offer-attendance', async (req, res) => {
         if (isWeekend || isHoliday) {
           // On weekends and holidays, count all working hours as offer hours
           const workingMs = checkOutTime.getTime() - checkInTime.getTime();
-          offerHours = Math.max(offerHours, workingMs / (1000 * 60 * 60));
+          const rawWorkingHours = workingMs / (1000 * 60 * 60);
+          
+          // Round down to the nearest 15-minute block for weekend/holiday hours
+          const totalMinutes = Math.floor(rawWorkingHours * 60);
+          const roundedMinutes = Math.floor(totalMinutes / 15) * 15;
+          const roundedWorkingHours = roundedMinutes / 60;
+          
+          offerHours = Math.max(offerHours, roundedWorkingHours);
           
           if (dayOfWeek === 6) { // Saturday
             employee.saturdayHours += offerHours;

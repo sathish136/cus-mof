@@ -196,6 +196,7 @@ export class AttendanceCalculator {
    * Calculate 1/4 Offer (overtime calculation for quarter system)
    * Category A: Work hours calculated from 4:15 PM (16:15)
    * Category B: Work hours calculated from 4:45 PM (16:45)
+   * OT is rounded down to the nearest 15-minute block (1 hr, 1 hr 15 mins, 1 hr 30 mins, 1 hr 45 mins, etc.)
    */
   calculateOfferHours(
     checkIn: Date,
@@ -226,7 +227,13 @@ export class AttendanceCalculator {
       offerHours = Math.max(0, overtimeMs / (1000 * 60 * 60));
     }
 
-    return offerHours;
+    // Round down to the nearest 15-minute block
+    // Convert hours to minutes, round down to nearest 15, then back to hours
+    const totalMinutes = Math.floor(offerHours * 60);
+    const roundedMinutes = Math.floor(totalMinutes / 15) * 15;
+    const roundedHours = roundedMinutes / 60;
+
+    return roundedHours;
   }
 
   /**

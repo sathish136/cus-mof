@@ -2650,6 +2650,7 @@ export default function Reports() {
             <div className="text-sm text-gray-600 space-y-1">
               <p>• <strong>Group A:</strong> Overtime calculated from 4:15 PM onwards</p>
               <p>• <strong>Group B:</strong> Overtime calculated from 4:45 PM onwards</p>
+              <p>• <strong>1/4 Hour Logic:</strong> OT rounded down to nearest 15-minute block (1 hr, 1 hr 15 mins, 1 hr 30 mins, 1 hr 45 mins, etc.)</p>
               <p>• Includes government holidays and Saturday work hours</p>
             </div>
           </CardHeader>
