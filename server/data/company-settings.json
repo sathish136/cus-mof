@@ -1,10 +1,4 @@
 {
-  "companyName": "DEMO",
-  "tagline": "DEMO",
-  "address": "Ministry of Finance, Colombo, Sri Lanka",
-  "phone": "+94 11 234 5678",
-  "email": "hr@wtt.gov.lk",
-  "website": "https://wtt.gov.lk",
-  "taxId": "123456789V",
-  "establishedYear": "2020"
+  "companyName": "Ministry of Finance",
+  "tagline": "Srilanka"
 }
