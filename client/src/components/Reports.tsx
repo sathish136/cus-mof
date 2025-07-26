@@ -1311,10 +1311,14 @@ export default function Reports() {
       });
     }
 
-    htmlContent += `
+    // Only add closing table tags for non-monthly attendance reports
+    if (reportType !== "monthly-attendance") {
+      htmlContent += `
         </tbody>
-        </table>
-        
+        </table>`;
+    }
+    
+    htmlContent += `
         <div class="footer">
           <p><strong>Ministry of Finance - Sri Lanka</strong></p>
           <p>Human Resources Department | Attendance Management System</p>
