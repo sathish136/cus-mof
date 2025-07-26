@@ -1226,15 +1226,13 @@ router.get("/api/reports/monthly-attendance", async (req, res) => {
           dayData.status = 'P';
           // Convert UTC times to Sri Lanka time zone (UTC+5:30)
           if (attendanceRecord.checkIn) {
-            const checkInTime = new Date(attendanceRecord.checkIn);
-            checkInTime.setHours(checkInTime.getHours() + 5, checkInTime.getMinutes() + 30);
+            const checkInTime = new Date(attendanceRecord.checkIn.getTime() + (5.5 * 60 * 60 * 1000));
             dayData.inTime = checkInTime.toTimeString().slice(0, 5); // HH:MM format
           } else {
             dayData.inTime = '';
           }
           if (attendanceRecord.checkOut) {
-            const checkOutTime = new Date(attendanceRecord.checkOut);
-            checkOutTime.setHours(checkOutTime.getHours() + 5, checkOutTime.getMinutes() + 30);
+            const checkOutTime = new Date(attendanceRecord.checkOut.getTime() + (5.5 * 60 * 60 * 1000));
             dayData.outTime = checkOutTime.toTimeString().slice(0, 5); // HH:MM format
           } else {
             dayData.outTime = '';
@@ -3204,9 +3202,7 @@ router.get("/api/reports/employee-punch-times", async (req, res) => {
 
       // Add check-in punch
       if (record.checkIn) {
-        const checkInTime = new Date(record.checkIn);
-        // Convert UTC to Sri Lanka time zone (UTC+5:30)
-        checkInTime.setHours(checkInTime.getHours() + 5, checkInTime.getMinutes() + 30);
+        const checkInTime = new Date(record.checkIn.getTime() + (5.5 * 60 * 60 * 1000));
         punchTimesData.push({
           employeeId: record.empId,
           fullName: record.employeeFullName,
@@ -3219,9 +3215,7 @@ router.get("/api/reports/employee-punch-times", async (req, res) => {
 
       // Add check-out punch  
       if (record.checkOut && (!record.checkIn || record.checkOut.getTime() !== record.checkIn.getTime())) {
-        const checkOutTime = new Date(record.checkOut);
-        // Convert UTC to Sri Lanka time zone (UTC+5:30)
-        checkOutTime.setHours(checkOutTime.getHours() + 5, checkOutTime.getMinutes() + 30);
+        const checkOutTime = new Date(record.checkOut.getTime() + (5.5 * 60 * 60 * 1000));
         punchTimesData.push({
           employeeId: record.empId,
           fullName: record.employeeFullName,
@@ -3348,9 +3342,7 @@ router.get("/api/reports/individual-monthly", async (req, res) => {
         status = 'Present';
         
         if (attendanceRecord.checkIn) {
-          const checkIn = new Date(attendanceRecord.checkIn);
-          // Convert UTC to Sri Lanka time zone (UTC+5:30)
-          checkIn.setHours(checkIn.getHours() + 5, checkIn.getMinutes() + 30);
+          const checkIn = new Date(attendanceRecord.checkIn.getTime() + (5.5 * 60 * 60 * 1000));
           inTime = checkIn.toTimeString().slice(0, 5); // HH:MM format
           
           // Check if late based on group policy
@@ -3371,9 +3363,7 @@ router.get("/api/reports/individual-monthly", async (req, res) => {
         }
 
         if (attendanceRecord.checkOut) {
-          const checkOut = new Date(attendanceRecord.checkOut);
-          // Convert UTC to Sri Lanka time zone (UTC+5:30)
-          checkOut.setHours(checkOut.getHours() + 5, checkOut.getMinutes() + 30);
+          const checkOut = new Date(attendanceRecord.checkOut.getTime() + (5.5 * 60 * 60 * 1000));
           outTime = checkOut.toTimeString().slice(0, 5); // HH:MM format
           
           // Calculate total hours
