@@ -241,6 +241,9 @@ Changelog:
     - Auto-sync continues to work every 30 seconds in background without user interface
     - Fixed Individual Employee Monthly Report JavaScript errors (variable reference issues with checkIn/checkOut)
     - Individual Employee Monthly Report now generating complete daily attendance data with proper timing information
+    - Set company name to "Ministry of Finance" and tagline to "Srilanka" with read-only protection
+    - Company Name and Tagline fields are now protected from modification in Settings interface
+    - Updated all default company information throughout frontend and backend systems
     - Migration completed successfully - system ready for full operation
     - Successfully migrated complete HR Attendance Management System from Replit Agent to standard Replit environment
     - Fixed cross-env dependency issue preventing application startup by installing missing cross-env package

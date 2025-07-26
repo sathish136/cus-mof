@@ -3969,8 +3969,8 @@ export function registerRoutes(app: any) {
       } else {
         // Return default settings
         const defaultSettings = {
-          companyName: "WTT INTERNATIONAL",
-          tagline: "Water Loving Technology",
+          companyName: "Ministry of Finance",
+          tagline: "Srilanka",
           address: "Ministry of Finance, Colombo, Sri Lanka",
           phone: "+94 11 234 5678",
           email: "hr@wtt.gov.lk",

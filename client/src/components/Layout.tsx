@@ -17,8 +17,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [companyInfo, setCompanyInfo] = useState({
-    companyName: "WTT INTERNATIONAL",
-    tagline: "Water Loving Technology"
+    companyName: "Ministry of Finance",
+    tagline: "Srilanka"
   });
 
   // Load company settings for sidebar
@@ -29,8 +29,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         if (response.ok) {
           const data = await response.json();
           setCompanyInfo({
-            companyName: data.companyName || "WTT INTERNATIONAL",
-            tagline: data.tagline || "Water Loving Technology"
+            companyName: data.companyName || "Ministry of Finance",
+            tagline: data.tagline || "Srilanka"
           });
         }
       } catch (error) {

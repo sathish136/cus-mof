@@ -47,8 +47,8 @@ export default function Settings() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<BiometricDevice | null>(null);
   const [companySettings, setCompanySettings] = useState({
-    companyName: "WTT INTERNATIONAL",
-    tagline: "Water Loving Technology",
+    companyName: "Ministry of Finance",
+    tagline: "Srilanka",
     address: "Ministry of Finance, Colombo, Sri Lanka",
     phone: "+94 11 234 5678",
     email: "hr@wtt.gov.lk",
@@ -843,16 +843,18 @@ export default function Settings() {
                   <Label htmlFor="companyName">Company Name</Label>
                   <Input
                     id="companyName"
-                    value={companySettings.companyName}
-                    onChange={(e) => setCompanySettings({...companySettings, companyName: e.target.value})}
+                    value="Ministry of Finance"
+                    readOnly
+                    className="bg-gray-50 text-gray-700 cursor-not-allowed"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tagline">Tagline</Label>
                   <Input
                     id="tagline"
-                    value={companySettings.tagline}
-                    onChange={(e) => setCompanySettings({...companySettings, tagline: e.target.value})}
+                    value="Srilanka"
+                    readOnly
+                    className="bg-gray-50 text-gray-700 cursor-not-allowed"
                   />
                 </div>
                 <div className="space-y-2">
@@ -905,7 +907,10 @@ export default function Settings() {
                   onChange={(e) => setCompanySettings({...companySettings, taxId: e.target.value})}
                 />
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-between">
+                <div className="text-sm text-gray-500">
+                  <strong>Note:</strong> Company Name and Tagline are protected and cannot be modified.
+                </div>
                 <Button 
                   onClick={() => saveCompanySettingsMutation.mutate(companySettings)}
                   disabled={saveCompanySettingsMutation.isPending}
