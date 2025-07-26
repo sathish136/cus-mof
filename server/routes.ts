@@ -99,26 +99,45 @@ async function performAutoSync() {
           const attendanceMap = new Map();
           const allEmployees = await db.select().from(employees);
           
-          // Create lookup function for employee IDs
+          // Create lookup function for employee IDs with better matching
           const findEmployeeIdLocal = (uid: string): string | null => {
-            // Try exact match with biometric_device_id first
-            const byBiometric = allEmployees.find(emp => emp.biometricDeviceId === uid);
+            const trimmedUid = String(uid).trim();
+            
+            // Try exact match with employee_id first (most common case)
+            const byEmpId = allEmployees.find(emp => emp.employeeId === trimmedUid);
+            if (byEmpId) return byEmpId.id;
+            
+            // Try exact match with biometric_device_id if it exists
+            const byBiometric = allEmployees.find(emp => emp.biometricDeviceId && emp.biometricDeviceId === trimmedUid);
             if (byBiometric) return byBiometric.id;
             
-            // Try exact match with employee_id
-            const byEmpId = allEmployees.find(emp => emp.employeeId === uid);
-            if (byEmpId) return byEmpId.id;
+            // Try exact match with id field as fallback
+            const byId = allEmployees.find(emp => emp.id === trimmedUid);
+            if (byId) return byId.id;
             
             return null;
           };
 
+          // Add debug logging to understand what's happening
+          console.log(`Processing ${logs.length} attendance logs for device ${device.deviceId}`);
+          console.log(`Found ${allEmployees.length} employees in database`);
+          
+          let foundCount = 0;
+          let notFoundCount = 0;
+          const notFoundUIDs = new Set();
+          
           for (const log of logs) {
             const uid = String(log.uid).trim();
             const employeeDbId = findEmployeeIdLocal(uid);
             if (!employeeDbId) {
-              console.warn(`No employee found for UID: ${uid}`);
+              notFoundCount++;
+              notFoundUIDs.add(uid);
+              if (notFoundUIDs.size <= 10) { // Only log first 10 missing UIDs to avoid spam
+                console.warn(`No employee found for UID: ${uid}`);
+              }
               continue;
             }
+            foundCount++;
 
             const logDate = new Date(log.timestamp);
             const dateKey = `${employeeDbId}-${logDate.toISOString().split('T')[0]}`;
@@ -139,6 +158,12 @@ async function performAutoSync() {
               if (log.timestamp < record.checkIn) record.checkIn = log.timestamp;
               if (log.timestamp > record.checkOut) record.checkOut = log.timestamp;
             }
+          }
+          
+          // Log sync statistics
+          console.log(`Sync stats for ${device.deviceId}: Found ${foundCount} employees, ${notFoundCount} UIDs not found`);
+          if (notFoundUIDs.size > 10) {
+            console.log(`Total unique missing UIDs: ${notFoundUIDs.size} (only first 10 logged)`);
           }
 
           // Prepare records for database insertion
