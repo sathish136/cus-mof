@@ -249,6 +249,9 @@ Changelog:
     - Improved debugging output for troubleshooting biometric device data formats
     - Hidden auto-sync GUI controls in Settings > Devices tab while keeping background functionality active
     - Auto-sync continues to work every 30 seconds in background without user interface
+    - Fixed Individual 1/4 Offer Report PDF export functionality by adding proper data structure handling and type checking
+    - Added Treasury format PDF export with complete attendance table, employee information, and signature areas
+    - Resolved "Cannot convert undefined or null to object" error by implementing proper type guards for Individual 1/4 Offer data structure
     - Fixed Individual Employee Monthly Report JavaScript errors (variable reference issues with checkIn/checkOut)
     - Individual Employee Monthly Report now generating complete daily attendance data with proper timing information
     - Set company name to "Ministry of Finance" and tagline to "Srilanka" with read-only protection

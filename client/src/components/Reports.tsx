@@ -1123,7 +1123,7 @@ export default function Reports() {
           <div class="report-title">${reportTitle}</div>
           <div class="report-info">
             <span>Report Period: <span class="report-period">${reportType === 'monthly-attendance' ? reportMonth : startDate === endDate ? startDate : `${startDate} to ${endDate}`}</span></span>
-            <span>Total Records: <strong>${data.length}</strong></span>
+            <span>Total Records: <strong>${reportType === 'individual-offer' ? (data && typeof data === 'object' && !Array.isArray(data) && data.dailyData ? data.dailyData.length : 0) : Array.isArray(data) ? data.length : 0}</strong></span>
           </div>
           <div class="report-info">
             <span>Generated: <span class="generated-time">${reportGeneratedTime}</span></span>
@@ -1141,7 +1141,7 @@ export default function Reports() {
         <div class="summary-stats">
           <div class="stats-row">
             <span>📊 Report Generated: ${reportGeneratedTime}</span>
-            <span>📋 Total Entries: ${data.length}</span>
+            <span>📋 Total Entries: ${reportType === 'individual-offer' ? (data && typeof data === 'object' && !Array.isArray(data) && data.dailyData ? data.dailyData.length : 0) : Array.isArray(data) ? data.length : 0}</span>
             <span>🏢 Department: Human Resources</span>
           </div>
         </div>
@@ -1149,7 +1149,219 @@ export default function Reports() {
         <table>
     `;
 
-    if (reportType === "monthly-attendance") {
+    if (reportType === "individual-offer") {
+      // Special handling for Individual 1/4 Offer Report - Treasury Format
+      // Type guard for individual offer data
+      const isIndividualOfferData = (data: any): data is { employee: any; period: any; dailyData: any[]; summary: any } => {
+        return data && typeof data === 'object' && !Array.isArray(data) && 
+               data.employee && data.period && data.dailyData && data.summary;
+      };
+
+      if (!isIndividualOfferData(data)) {
+        console.error('Invalid data structure for individual offer report');
+        alert('Invalid data structure for PDF export');
+        return;
+      }
+
+      const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr);
+        return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+      };
+
+      const formatDateLong = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        return `${formatDate(dateStr)} ${days[date.getDay()]}`;
+      };
+
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${filename}</title>
+          <style>
+            @page { size: A4; margin: 0.5in; }
+            body { 
+              font-family: Arial, sans-serif; 
+              font-size: 12px; 
+              line-height: 1.4; 
+              margin: 0; 
+              padding: 20px; 
+              color: black;
+            }
+            .treasury-header {
+              text-align: center;
+              border: 2px solid black;
+              margin-bottom: 20px;
+            }
+            .header-section {
+              padding: 10px;
+              border-bottom: 1px solid black;
+            }
+            .employee-info {
+              padding: 15px;
+              border-bottom: 1px solid black;
+            }
+            .attendance-table {
+              padding: 15px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 10px;
+            }
+            th, td {
+              border: 1px solid black;
+              padding: 6px;
+              text-align: center;
+              font-size: 11px;
+            }
+            th {
+              background-color: #e9ecef;
+              font-weight: bold;
+            }
+            .summary-section {
+              margin-top: 15px;
+              padding: 10px;
+              border: 1px solid black;
+              background-color: #f8f9fa;
+              float: right;
+              width: 300px;
+            }
+            .signature-section {
+              margin-top: 30px;
+              display: flex;
+              justify-content: space-between;
+            }
+            .signature-box {
+              text-align: center;
+              width: 250px;
+            }
+            .signature-line {
+              border-top: 1px solid black;
+              padding-top: 5px;
+              margin-top: 40px;
+            }
+            @media print {
+              body { margin: 0; padding: 15px; }
+              @page { margin: 0.4in; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="treasury-header">
+            <div class="header-section">
+              <div style="font-size: 10px; margin-bottom: 5px;">gADG</div>
+              <div style="font-weight: bold; font-size: 13px;">Project Management and Monitoring</div>
+              <div style="font-size: 16px; font-weight: bold; margin-top: 10px; text-decoration: underline;">
+                Applying for 1/4 allowance of Treasury Officers
+              </div>
+            </div>
+
+            <div class="employee-info">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="text-align: left;">
+                  <div style="margin-bottom: 5px;">
+                    <strong>Emp Id :</strong> ${data.employee.employeeId}
+                  </div>
+                  <div style="margin-bottom: 5px;">
+                    <strong>Name :</strong> ${data.employee.fullName}
+                  </div>
+                  <div style="margin-bottom: 15px;">
+                    <strong>Period :</strong> ${formatDate(data.period.startDate)} to ${formatDate(data.period.endDate)}
+                  </div>
+                </div>
+                <div style="border: 1px solid black; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                  <strong style="font-size: 12px;">1/4</strong>
+                </div>
+              </div>
+
+              <div style="text-align: left; font-size: 11px; margin-bottom: 10px;">
+                I, _________________________________ who serve as a ___________________________ at the Department of _______________________________, 
+                Object Management and Monitoring have completed an additional time period of ________ hours in the month of ${data.period.startDate ? new Date(data.period.startDate).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : ''}.
+              </div>
+              <div style="text-align: left; font-size: 11px;">
+                Therefore, I kindly request you to grant me Rs. _____________ as the 1/4 allowance of Treasury Officers according to the proposal.
+              </div>
+            </div>
+
+            <div class="attendance-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>In Time</th>
+                    <th>Out Time</th>
+                    <th>Status 1</th>
+                    <th>Status 2</th>
+                    <th style="background-color: #d1ecf1;">1/4 Hours</th>
+                  </tr>
+                </thead>
+                <tbody>`;
+
+      // Add daily data rows
+      if (data.dailyData && Array.isArray(data.dailyData)) {
+        data.dailyData.forEach((day: any, index: number) => {
+          htmlContent += `
+                  <tr style="${index % 2 === 0 ? 'background-color: #f8f9fa;' : ''}">
+                    <td>${formatDateLong(day.date)}</td>
+                    <td>${day.inTime || '-'}</td>
+                    <td>${day.outTime || '-'}</td>
+                    <td>${day.status1 || '-'}</td>
+                    <td>${day.status2 || '-'}</td>
+                    <td style="font-weight: bold; background-color: #e7f3ff;">${day.offerHours || '0.00'}</td>
+                  </tr>`;
+        });
+      }
+
+      htmlContent += `
+                </tbody>
+              </table>
+
+              <div class="summary-section">
+                <div style="font-weight: bold; margin-bottom: 10px;">
+                  Total: ${parseFloat(data.summary?.totalOfferHours || 0).toFixed(1)} hours
+                </div>
+                <div style="font-size: 10px; margin-bottom: 5px;">
+                  Basic salary: ___________________
+                </div>
+                <div style="font-size: 10px; margin-bottom: 5px;">
+                  Hour rate for 1/4 hours: ___________________
+                </div>
+                <div style="font-size: 10px;">
+                  Total allowances for month of ${data.period.startDate ? new Date(data.period.startDate).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : ''}: ___________________
+                </div>
+              </div>
+
+              <div style="clear: both;"></div>
+
+              <div class="signature-section">
+                <div class="signature-box">
+                  <div class="signature-line">
+                    <div style="font-weight: bold; font-size: 11px;">Signature of the requesting officer</div>
+                    <div style="font-size: 10px; margin-top: 10px;">Date: ___________________</div>
+                  </div>
+                </div>
+                <div class="signature-box">
+                  <div class="signature-line">
+                    <div style="font-weight: bold; font-size: 11px;">Signature of the checked officer</div>
+                    <div style="font-size: 10px; margin-top: 10px;">Date: ___________________</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>`;
+
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+      return;
+    } else if (reportType === "monthly-attendance") {
       // Special handling for monthly attendance with timing details
       const start = new Date(startDate);
       const end = new Date(endDate);
