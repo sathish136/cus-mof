@@ -184,6 +184,9 @@ export default function Login() {
           <p className="text-xs text-slate-500">
             Professional HR Solutions & Software Development
           </p>
+          <p className="text-xs text-slate-400 mt-1">
+            Mobile: 0117780000
+          </p>
         </div>
       </div>
     </div>
