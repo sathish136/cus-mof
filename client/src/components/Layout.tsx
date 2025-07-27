@@ -98,18 +98,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Logo Section */}
         <div className="p-6 border-b border-slate-700">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-lg overflow-hidden">
-              <img 
-                src="/ministry_logo.png" 
-                alt="Ministry of Finance Logo" 
-                className="w-8 h-8 object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  if (e.currentTarget.parentElement) {
-                    e.currentTarget.parentElement.innerHTML = '<div class="w-5 h-5 text-amber-500"><Building /></div>';
-                  }
-                }}
-              />
+            <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center shadow-lg">
+              <Building className="w-5 h-5 text-white" />
             </div>
             <div>
               <h1 className="text-white font-semibold text-sm">{companyInfo.companyName}</h1>
