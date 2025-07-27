@@ -171,9 +171,12 @@ export default function Login() {
         <div className="mt-4 text-center">
           <div className="flex items-center justify-center space-x-2 mb-1">
             <img 
-              src="/attached_assets/ministry_logo.png" 
+              src="/ministry_logo.png" 
               alt="Ministry Logo" 
               className="w-6 h-6 rounded-md shadow-md"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
             />
             <div className="text-sm">
               <span className="text-slate-600">Powered by </span>

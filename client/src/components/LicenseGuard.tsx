@@ -106,7 +106,7 @@ export function LicenseGuard({ children, feature }: LicenseGuardProps) {
             <div className="pt-4 border-t">
               <div className="flex items-center gap-3 mb-3">
                 <img 
-                  src="/attached_assets/ministry_logo.png" 
+                  src="/ministry_logo.png" 
                   alt="Ministry Logo" 
                   className="w-8 h-8 rounded"
                 />
@@ -115,7 +115,7 @@ export function LicenseGuard({ children, feature }: LicenseGuardProps) {
               <p className="text-xs text-gray-500">
                 For technical support or to obtain a license key:<br/>
                 Email: support@liveu.lk<br/>
-                Phone: 0117780000
+                Mobile: 0117780000
               </p>
             </div>
           </CardContent>
