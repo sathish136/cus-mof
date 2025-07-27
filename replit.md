@@ -234,7 +234,7 @@ Changelog:
     - All system management functions (backup, logs, etc.) disabled without valid license
     - Professional support contact integration and license validation workflow
     - License-based feature enablement system for future functionality restrictions
-  - Migration to Replit Environment Completed Successfully (July 26, 2025):
+  - Migration to Replit Environment Completed Successfully (July 27, 2025):
     - Successfully migrated complete HR Attendance Management System from Replit Agent to standard Replit environment
     - Used existing PostgreSQL database with provided DATABASE_URL connection string
     - Verified all database tables are present and functional: attendance, biometric_devices, departments, employees, holidays, leave_requests, leave_types, overtime_requests, short_leave_requests
@@ -249,6 +249,12 @@ Changelog:
     - Improved debugging output for troubleshooting biometric device data formats
     - Hidden auto-sync GUI controls in Settings > Devices tab while keeping background functionality active
     - Auto-sync continues to work every 30 seconds in background without user interface
+  - UI Updates (July 27, 2025):
+    - Downloaded and integrated Ministry of Finance logo replacing "LU" logo
+    - Updated Login component powered by section with Ministry logo
+    - Updated LicenseGuard component with Ministry logo
+    - Removed "LU" branding and replaced with appropriate Ministry logo throughout application
+    - Logo now displays correctly in both login screen and license validation screens
     - Fixed Individual 1/4 Offer Report PDF export functionality by adding proper data structure handling and type checking
     - Added Treasury format PDF export with complete attendance table, employee information, and signature areas
     - Resolved "Cannot convert undefined or null to object" error by implementing proper type guards for Individual 1/4 Offer data structure
