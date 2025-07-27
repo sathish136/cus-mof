@@ -820,7 +820,7 @@ export default function Settings() {
                   <Users className="w-5 h-5 mr-3 text-gray-400" />
                   <div className="text-left">
                     <div className="font-medium text-gray-600">User Management</div>
-                    <div className="text-sm text-gray-500">Coming soon</div>
+                    <div className="text-sm text-gray-500">Manage system users and permissions</div>
                   </div>
                 </div>
               </div>
