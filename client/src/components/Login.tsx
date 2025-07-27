@@ -165,14 +165,31 @@ export default function Login() {
               <div className="text-sm">
                 <p className="font-medium text-amber-800">Demo Access</p>
                 <p className="text-amber-700 mt-1">
-                  Username: <code className="bg-amber-100 px-1 rounded">admin</code>
+                  Username: <code className="bg-amber-100 px-1 rounded">mof</code>
                   <br />
-                  Password: <code className="bg-amber-100 px-1 rounded">admin123</code>
+                  Password: <code className="bg-amber-100 px-1 rounded">555@mof</code>
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Powered By Section */}
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-sm">LU</span>
+            </div>
+            <div className="text-sm">
+              <span className="text-gray-600">Powered by </span>
+              <span className="font-semibold text-blue-600">Live U Pvt Ltd</span>
+              <span className="text-gray-600">, Sri Lanka</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">
+            Professional HR Solutions & Software Development
+          </p>
+        </div>
       </div>
     </div>
   );

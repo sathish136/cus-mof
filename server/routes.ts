@@ -4078,14 +4078,14 @@ export function registerRoutes(app: any) {
       const { username, password } = req.body;
       
       // Simple demo authentication - in production, use proper password hashing
-      if (username === "admin" && password === "admin123") {
+      if (username === "mof" && password === "555@mof") {
         const user = {
           id: "USR001",
-          username: "admin",
-          fullName: "System Administrator",
+          username: "mof",
+          fullName: "Ministry of Finance Administrator",
           email: "admin@mof.gov.lk",
           role: "admin",
-          department: "IT Department",
+          department: "Ministry of Finance",
           position: "System Administrator"
         };
         
