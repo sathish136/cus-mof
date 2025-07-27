@@ -3153,37 +3153,13 @@ export default function Reports() {
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Reports</h2>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transition duration-200 ease-in-out flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Export Report
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem 
-              onClick={handlePreviewExport}
-              className="flex items-center gap-3 py-3 px-4 cursor-pointer hover:bg-green-50 focus:bg-green-50"
-            >
-              <FileSpreadsheet className="h-4 w-4 text-green-600" />
-              <div className="flex flex-col">
-                <span className="font-medium text-green-700">Excel Format</span>
-                <span className="text-xs text-gray-500">Download as .xlsx file</span>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => handleExportReport('pdf')}
-              className="flex items-center gap-3 py-3 px-4 cursor-pointer hover:bg-red-50 focus:bg-red-50"
-            >
-              <FileText className="h-4 w-4 text-red-600" />
-              <div className="flex flex-col">
-                <span className="font-medium text-red-700">PDF Format</span>
-                <span className="text-xs text-gray-500">Download as .pdf file</span>
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button 
+          onClick={handlePreviewExport}
+          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transition duration-200 ease-in-out flex items-center gap-2"
+        >
+          <FileSpreadsheet className="h-4 w-4" />
+          Export to Excel
+        </Button>
       </div>
       <Card className="rounded-lg shadow-sm border-gray-200">
         <CardHeader>
