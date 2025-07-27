@@ -157,9 +157,6 @@ export default function Login() {
 
             {/* Support Section */}
             <div className="mt-4 pt-4 border-t border-slate-100 text-center">
-              <p className="text-xs text-slate-500 mb-1">
-                For technical support, contact IT Department
-              </p>
               <p className="text-xs text-slate-400">
                 Authorized personnel only • Government of Sri Lanka
               </p>
