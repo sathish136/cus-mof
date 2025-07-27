@@ -33,24 +33,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
       });
 
-      // Clear local storage
+      // Clear all authentication data
       localStorage.removeItem("user");
       localStorage.removeItem("isAuthenticated");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("isAuthenticated");
+      
+      // Clear any cached data
+      localStorage.clear();
+      sessionStorage.clear();
       
       toast({
         title: "Success",
         description: "Logged out successfully",
       });
 
-      // Redirect to login
-      setLocation("/login");
+      // Force redirect to login page
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout error:", error);
-      toast({
-        title: "Error",
-        description: "Logout failed",
-        variant: "destructive",
-      });
+      // Even if API fails, force logout locally
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "/login";
     }
   };
 

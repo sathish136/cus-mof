@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { XCircle, Key } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 
 interface LicenseGuardProps {
   children: ReactNode;
@@ -17,6 +18,12 @@ export function LicenseGuard({ children, feature }: LicenseGuardProps) {
   const { license, validateLicense, isFeatureEnabled, requiresLicense } = useLicense();
   const [licenseKey, setLicenseKey] = useState('');
   const { toast } = useToast();
+  const [location] = useLocation();
+
+  // Allow login page to bypass license check
+  if (location === '/login') {
+    return <>{children}</>;
+  }
 
   // If a specific feature is required, check if it's enabled
   if (feature && !isFeatureEnabled(feature)) {

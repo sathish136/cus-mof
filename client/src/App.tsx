@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import SplashScreen from "@/components/SplashScreen";
 import { LicenseGuard } from "@/components/LicenseGuard";
+import AuthGuard from "@/components/AuthGuard";
 import Dashboard from "@/components/Dashboard";
 import EmployeeManagement from "@/components/EmployeeManagement";
 import AttendanceTracker from "@/components/AttendanceTracker";
@@ -46,27 +47,28 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LicenseGuard>
-        <div className="h-screen bg-gray-50">
-          <Layout>
-            {/* Header with app title removed as per user request */}
-            <Route path="/" component={Dashboard} />
-            <Route path="/employees" component={EmployeeManagement} />
-            <Route path="/attendance" component={AttendanceTracker} />
-            <Route path="/leave" component={LeaveManagement} />
-            <Route path="/leave-reports" component={LeaveReports} />
-            <Route path="/holidays" component={HolidayManagement} />
-            <Route path="/overtime" component={OvertimeManagement} />
-            <Route path="/reports" component={Reports} />
-            <Route path="/settings" component={Settings} />
-            <Route path="/hr-settings" component={HRSettings} />
-            <Route path="/login" component={Login} />
-            <Route path="/profile" component={UserProfile} />
-            <Route path="/notifications" component={Notifications} />
-          </Layout>
-          <Toaster />
-        </div>
-      </LicenseGuard>
+      <AuthGuard>
+        <LicenseGuard>
+          <div className="h-screen bg-gray-50">
+            <Layout>
+              {/* Header with app title removed as per user request */}
+              <Route path="/" component={Dashboard} />
+              <Route path="/employees" component={EmployeeManagement} />
+              <Route path="/attendance" component={AttendanceTracker} />
+              <Route path="/leave" component={LeaveManagement} />
+              <Route path="/leave-reports" component={LeaveReports} />
+              <Route path="/holidays" component={HolidayManagement} />
+              <Route path="/overtime" component={OvertimeManagement} />
+              <Route path="/reports" component={Reports} />
+              <Route path="/settings" component={Settings} />
+              <Route path="/hr-settings" component={HRSettings} />
+              <Route path="/profile" component={UserProfile} />
+              <Route path="/notifications" component={Notifications} />
+            </Layout>
+            <Toaster />
+          </div>
+        </LicenseGuard>
+      </AuthGuard>
     </QueryClientProvider>
   );
 }
