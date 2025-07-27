@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Building, ChartLine, Users, Clock, Calendar, Watch, ChartBar, Settings, User, Bell, UserCircle } from "lucide-react";
+import { Building, ChartLine, Users, Clock, Calendar, Watch, ChartBar, Settings, User, Bell, UserCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: ChartLine },
@@ -15,11 +16,43 @@ const navigation = [
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const [, setLocation] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { toast } = useToast();
   const [companyInfo, setCompanyInfo] = useState({
     companyName: "Ministry of Finance",
     tagline: "Srilanka"
   });
+
+  // Logout function
+  const handleLogout = async () => {
+    try {
+      // Call logout API
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      // Clear local storage
+      localStorage.removeItem("user");
+      localStorage.removeItem("isAuthenticated");
+      
+      toast({
+        title: "Success",
+        description: "Logged out successfully",
+      });
+
+      // Redirect to login
+      setLocation("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Error",
+        description: "Logout failed",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Load company settings for sidebar
   useEffect(() => {
@@ -96,16 +129,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* User Profile */}
         <div className="p-4 border-t border-slate-700">
-          <div className="flex items-center space-x-3">
-            <Avatar className="w-8 h-8 bg-amber-500 shadow-md">
-              <AvatarFallback className="bg-amber-500 text-white">
-                <User className="w-4 h-4" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-white text-sm font-medium">Admin User</p>
-              <p className="text-slate-300 text-xs">HR Manager</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Avatar className="w-8 h-8 bg-amber-500 shadow-md">
+                <AvatarFallback className="bg-amber-500 text-white">
+                  <User className="w-4 h-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-white text-sm font-medium">Admin User</p>
+                <p className="text-slate-300 text-xs">HR Manager</p>
+              </div>
             </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleLogout}
+              className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </div>
@@ -131,6 +175,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     <UserCircle className="w-6 h-6" />
                   </Button>
                 </Link>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleLogout}
+                  className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                  title="Logout"
+                >
+                  <LogOut className="w-5 h-5" />
+                </Button>
               </div>
             </div>
           </div>
