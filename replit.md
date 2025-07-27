@@ -235,12 +235,13 @@ Changelog:
     - Professional support contact integration and license validation workflow
     - License-based feature enablement system for future functionality restrictions
   - Migration to Replit Environment Completed Successfully (July 27, 2025):
-    - Downloaded and integrated Ministry of Finance logo replacing "LU" logo
-    - Updated Login component powered by section with Ministry logo  
-    - Updated LicenseGuard component with Ministry logo
-    - Removed "LU" branding and replaced with appropriate Ministry logo throughout application
+    - Downloaded and integrated official Ministry of Finance Treasury logo replacing "LU" logo
+    - Updated Login component powered by section with official Treasury logo  
+    - Updated LicenseGuard component with official Treasury logo
+    - Removed "LU" branding and replaced with appropriate Treasury logo throughout application
     - Logo now displays correctly in both login screen and license validation screens
     - Changed "Phone" to "Mobile" in contact information as requested
+    - Removed "For technical support, contact IT Department" text from login page as requested
   - UI Updates (July 27, 2025):
     - Successfully migrated complete HR Attendance Management System from Replit Agent to standard Replit environment
     - Used existing PostgreSQL database with provided DATABASE_URL connection string
