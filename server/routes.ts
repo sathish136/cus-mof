@@ -2597,6 +2597,40 @@ router.get("/api/zk-devices/status", async (req, res) => {
 });
 
 // Database Management Routes
+
+// Database Truncation
+router.post('/api/database/truncate', async (req, res) => {
+  try {
+    console.log('Starting database truncation...');
+    
+    // Disable foreign key checks temporarily
+    await db.execute(sql`SET session_replication_role = replica`);
+    
+    // Truncate all tables in the correct order (child tables first)
+    await db.execute(sql`TRUNCATE TABLE attendance CASCADE`);
+    await db.execute(sql`TRUNCATE TABLE leave_requests CASCADE`);
+    await db.execute(sql`TRUNCATE TABLE overtime_requests CASCADE`);
+    await db.execute(sql`TRUNCATE TABLE short_leave_requests CASCADE`);
+    await db.execute(sql`TRUNCATE TABLE employees CASCADE`);
+    await db.execute(sql`TRUNCATE TABLE departments CASCADE`);
+    await db.execute(sql`TRUNCATE TABLE biometric_devices CASCADE`);
+    await db.execute(sql`TRUNCATE TABLE holidays CASCADE`);
+    
+    // Re-enable foreign key checks
+    await db.execute(sql`SET session_replication_role = origin`);
+    
+    console.log('Database truncation completed successfully');
+    res.json({ 
+      success: true, 
+      message: 'All database tables truncated successfully',
+      timestamp: new Date().toISOString(),
+      tables_truncated: ['attendance', 'leave_requests', 'overtime_requests', 'short_leave_requests', 'employees', 'departments', 'biometric_devices', 'holidays']
+    });
+  } catch (error) {
+    console.error('Failed to truncate database:', error);
+    res.status(500).json({ success: false, message: 'Failed to truncate database tables' });
+  }
+});
 let backups: any[] = [];
 
 // Database Status
