@@ -54,33 +54,33 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4 overflow-hidden">
+      <div className="w-full max-w-sm">
         {/* Main Login Card */}
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
           {/* Header Section */}
-          <CardHeader className="text-center pb-8 pt-8">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <Shield className="w-8 h-8 text-white" />
+          <CardHeader className="text-center pb-4 pt-6">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Shield className="w-6 h-6 text-white" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-slate-800 mb-2">
+            <CardTitle className="text-xl font-bold text-slate-800 mb-1">
               Ministry of Finance
             </CardTitle>
             <p className="text-slate-600 text-sm font-medium">
               HR Attendance Management System
             </p>
-            <p className="text-slate-500 text-xs mt-1">
+            <p className="text-slate-500 text-xs">
               Sri Lanka Government Portal
             </p>
           </CardHeader>
 
-          <CardContent className="px-8 pb-8">
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username" className="text-slate-700 font-medium">
+          <CardContent className="px-6 pb-6">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="username" className="text-slate-700 font-medium text-sm">
                     Username
                   </Label>
                   <Input
@@ -90,12 +90,12 @@ export default function Login() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="h-12 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="h-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-slate-700 font-medium">
+                <div className="space-y-1">
+                  <Label htmlFor="password" className="text-slate-700 font-medium text-sm">
                     Password
                   </Label>
                   <div className="relative">
@@ -106,24 +106,24 @@ export default function Login() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="h-12 pr-12 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="h-10 pr-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-5 w-5" />
+                        <EyeOff className="h-4 w-4" />
                       ) : (
-                        <Eye className="h-5 w-5" />
+                        <Eye className="h-4 w-4" />
                       )}
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center space-x-2">
                   <input
                     id="remember"
@@ -141,7 +141,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg transition-all duration-200"
+                className="w-full h-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg transition-all duration-200"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -156,8 +156,8 @@ export default function Login() {
             </form>
 
             {/* Support Section */}
-            <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-              <p className="text-xs text-slate-500 mb-2">
+            <div className="mt-4 pt-4 border-t border-slate-100 text-center">
+              <p className="text-xs text-slate-500 mb-1">
                 For technical support, contact IT Department
               </p>
               <p className="text-xs text-slate-400">
@@ -168,10 +168,10 @@ export default function Login() {
         </Card>
 
         {/* Powered By Section */}
-        <div className="mt-8 text-center">
-          <div className="flex items-center justify-center space-x-3 mb-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-sm">LU</span>
+        <div className="mt-4 text-center">
+          <div className="flex items-center justify-center space-x-2 mb-1">
+            <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-md flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-xs">LU</span>
             </div>
             <div className="text-sm">
               <span className="text-slate-600">Powered by </span>
