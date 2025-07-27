@@ -167,14 +167,9 @@ export default function Login() {
         {/* Powered By Section */}
         <div className="mt-4 text-center">
           <div className="flex items-center justify-center space-x-2 mb-1">
-            <img 
-              src="/ministry_logo.png" 
-              alt="Ministry Logo" 
-              className="w-6 h-6 rounded-md shadow-md"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+            <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-md flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-xs">LU</span>
+            </div>
             <div className="text-sm">
               <span className="text-slate-600">Powered by </span>
               <span className="font-semibold text-blue-600">Live U Pvt Ltd</span>

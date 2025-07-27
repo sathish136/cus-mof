@@ -105,11 +105,9 @@ export function LicenseGuard({ children, feature }: LicenseGuardProps) {
             
             <div className="pt-4 border-t">
               <div className="flex items-center gap-3 mb-3">
-                <img 
-                  src="/ministry_logo.png" 
-                  alt="Ministry Logo" 
-                  className="w-8 h-8 rounded"
-                />
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded flex items-center justify-center shadow-md">
+                  <span className="text-white font-bold text-sm">LU</span>
+                </div>
                 <span className="text-sm font-medium text-gray-700">Live U Pvt Ltd</span>
               </div>
               <p className="text-xs text-gray-500">
