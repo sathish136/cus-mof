@@ -40,14 +40,6 @@ export default function Login() {
         // Set inline error message
         setErrorMessage(errorMsg);
         
-        // Show detailed error toast
-        toast({
-          title: "❌ Authentication Failed",
-          description: errorMsg,
-          variant: "destructive",
-          duration: 5000, // Show for 5 seconds
-        });
-        
         return; // Exit early to prevent success handling
       }
 
@@ -60,30 +52,14 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("isAuthenticated", "true");
       
-      toast({
-        title: "✅ Login Successful",
-        description: `Welcome back, ${data.user.fullName}!`,
-        duration: 3000,
-      });
-
-      // Small delay to show success message before redirect
-      setTimeout(() => {
-        setLocation("/");
-      }, 500);
+      // Redirect immediately on success
+      setLocation("/");
 
     } catch (error: any) {
       console.error("Login error:", error);
       
       const connectionError = "Unable to connect to server. Please try again.";
       setErrorMessage(connectionError);
-      
-      // Fallback error handling
-      toast({
-        title: "❌ Connection Error",
-        description: connectionError,
-        variant: "destructive",
-        duration: 5000,
-      });
     } finally {
       setIsLoading(false);
     }
