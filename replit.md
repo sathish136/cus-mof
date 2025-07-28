@@ -494,3 +494,13 @@ Changelog:
     - Weekday overtime calculation: only hours after 4:15 PM (Group A) or 4:45 PM (Group B) count
     - Report includes daily attendance table, employee details, status mapping (P, LP, HD, AB, MS), and summary totals
     - Individual 1/4 Offer Report now fully functional with correct time display and Treasury format compliance
+  - ZK Device Name Corruption Fix Implementation (July 28, 2025):
+    - Added comprehensive employee name import functionality to Employee Management page
+    - Created "Import Names" button with professional dialog interface for CSV/Excel file uploads
+    - Built backend API endpoint `/api/employees/import-names` with multer file handling
+    - Supports both CSV and Excel (.xlsx, .xls) formats with flexible column mapping
+    - Matches Employee ID to update Full Name fields for corrupted ZK biometric device names
+    - Added sample template download functionality with proper format examples
+    - Includes validation, error handling, and progress feedback for import process
+    - Resolves issue where latest ZK biometric devices show encrypted/corrupted employee names
+    - Users can now easily fix name display by uploading Employee ID and Full Name mapping files

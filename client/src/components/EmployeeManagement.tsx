@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Eye, Edit, UserX, Filter, Upload, Settings2, Users, Check, X } from "lucide-react";
+import { Plus, Search, Eye, Edit, UserX, Filter, Upload, Settings2, Users, Check, X, FileUp, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +38,11 @@ const uploadPhoto = async (file: File): Promise<{ url: string }> => {
   const formData = new FormData();
   formData.append("file", file);
   return apiRequest('POST', '/api/upload', formData).then(res => res.json());
+};
+const importEmployeeNames = async (file: File): Promise<{ updated: number, message: string }> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return apiRequest('POST', '/api/employees/import-names', formData).then(res => res.json());
 };
 
 // --- Employee Form Component ---
@@ -336,6 +341,7 @@ export default function EmployeeManagement() {
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeWithDepartment | null>(null);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [showBulkOperations, setShowBulkOperations] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   const groupDisplay: Record<string, { name: string; className: string }> = {
     'group_a': { name: 'Group A', className: 'bg-blue-100 text-blue-800' },
@@ -382,6 +388,16 @@ export default function EmployeeManagement() {
       toast({ title: "Employee deleted successfully!" });
     },
     onError: (error) => toast({ title: "Error deleting employee", description: error.message, variant: "destructive" })
+  });
+
+  const importNamesMutation = useMutation({ 
+    mutationFn: importEmployeeNames, 
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast({ title: "Names imported successfully!", description: `Updated ${data.updated} employee names` });
+      setShowImportDialog(false);
+    },
+    onError: (error) => toast({ title: "Error importing names", description: error.message, variant: "destructive" })
   });
 
   const filteredEmployees = useMemo(() => {
@@ -440,6 +456,10 @@ export default function EmployeeManagement() {
               Bulk Operations ({selectedEmployees.length})
             </Button>
           )}
+          <Button variant="outline" onClick={() => setShowImportDialog(true)}>
+            <FileUp className="mr-2 h-4 w-4" />
+            Import Names
+          </Button>
           <Button onClick={() => openDialog('add')}><Plus className="mr-2 h-4 w-4" /> Add Employee</Button>
         </div>
       </div>
@@ -630,6 +650,108 @@ export default function EmployeeManagement() {
           isPending={bulkUpdateMutation.isPending}
         />
       )}
+
+      {/* Import Names Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileUp className="h-5 w-5" />
+              Import Employee Names
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-900 mb-2">Fix Corrupted ZK Device Names</h4>
+              <p className="text-sm text-blue-800 mb-3">
+                Latest ZK biometric devices may show encrypted/corrupted employee names. 
+                Use this feature to import proper names using Employee ID matching.
+              </p>
+              <div className="text-sm text-blue-700">
+                <p className="font-medium mb-1">Required CSV/Excel format:</p>
+                <p>• Column 1: Employee ID (must match existing employees)</p>
+                <p>• Column 2: Full Name (correct name to update)</p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <Label htmlFor="import-file">Select CSV or Excel File</Label>
+              <Input
+                id="import-file"
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    importNamesMutation.mutate(file);
+                  }
+                }}
+                disabled={importNamesMutation.isPending}
+              />
+              <p className="text-xs text-gray-500">
+                Supported formats: CSV, Excel (.xlsx, .xls)
+              </p>
+            </div>
+
+            <div className="bg-gray-50 border rounded-lg p-3">
+              <h5 className="font-medium text-gray-900 mb-2">Sample Format:</h5>
+              <div className="text-sm font-mono bg-white border rounded p-2">
+                <div className="grid grid-cols-2 gap-4 border-b pb-1 mb-1 font-semibold">
+                  <span>Employee ID</span>
+                  <span>Full Name</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <span>17</span>
+                  <span>Sathish Kumar</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <span>12</span>
+                  <span>John Silva</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <span>11</span>
+                  <span>Mary Fernando</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowImportDialog(false)}
+              disabled={importNamesMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                // Download sample template
+                const csv = "Employee ID,Full Name\n17,Sathish Kumar\n12,John Silva\n11,Mary Fernando";
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'employee_names_template.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              variant="outline"
+              disabled={importNamesMutation.isPending}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download Template
+            </Button>
+          </DialogFooter>
+          
+          {importNamesMutation.isPending && (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <span className="ml-2 text-sm text-gray-600">Processing import...</span>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

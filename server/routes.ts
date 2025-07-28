@@ -717,6 +717,101 @@ router.delete("/api/employees/:id", async (req, res) => {
   }
 });
 
+// Import Employee Names from CSV/Excel
+router.post("/api/employees/import-names", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const filePath = req.file.path;
+    const fileExtension = path.extname(req.file.originalname).toLowerCase();
+    
+    let data: any[] = [];
+    
+    if (fileExtension === '.csv') {
+      // Handle CSV files
+      const csvContent = fs.readFileSync(filePath, 'utf-8');
+      const lines = csvContent.split('\n').filter(line => line.trim() !== '');
+      
+      // Skip header row and parse data
+      for (let i = 1; i < lines.length; i++) {
+        const [employeeId, fullName] = lines[i].split(',').map(field => field.trim().replace(/^"|"$/g, ''));
+        if (employeeId && fullName) {
+          data.push({ employeeId, fullName });
+        }
+      }
+    } else if (fileExtension === '.xlsx' || fileExtension === '.xls') {
+      // Handle Excel files using xlsx library
+      const XLSX = require('xlsx');
+      const workbook = XLSX.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      // Map Excel data to our format
+      data = jsonData.map((row: any) => ({
+        employeeId: String(row['Employee ID'] || row.employeeId || Object.values(row)[0]).trim(),
+        fullName: String(row['Full Name'] || row.fullName || Object.values(row)[1]).trim()
+      })).filter(item => item.employeeId && item.fullName);
+    } else {
+      return res.status(400).json({ message: "Unsupported file format. Please use CSV or Excel files." });
+    }
+
+    if (data.length === 0) {
+      return res.status(400).json({ message: "No valid data found in file. Please check the format." });
+    }
+
+    // Update employee names
+    let updatedCount = 0;
+    const errors: string[] = [];
+
+    for (const item of data) {
+      try {
+        const result = await db
+          .update(employees)
+          .set({ fullName: item.fullName })
+          .where(eq(employees.employeeId, item.employeeId))
+          .returning();
+
+        if (result.length > 0) {
+          updatedCount++;
+          console.log(`Updated employee ${item.employeeId}: ${item.fullName}`);
+        } else {
+          errors.push(`Employee ID ${item.employeeId} not found`);
+        }
+      } catch (error) {
+        errors.push(`Failed to update employee ${item.employeeId}: ${error}`);
+      }
+    }
+
+    // Clean up uploaded file
+    fs.unlinkSync(filePath);
+
+    const response = {
+      updated: updatedCount,
+      message: `Successfully updated ${updatedCount} employee names`,
+      totalProcessed: data.length,
+      errors: errors.length > 0 ? errors : undefined
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error importing employee names:", error);
+    
+    // Clean up file if it exists
+    if (req.file?.path) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (cleanupError) {
+        console.error("Error cleaning up file:", cleanupError);
+      }
+    }
+    
+    res.status(500).json({ message: "Internal server error during import" });
+  }
+});
+
 // --- Attendance Routes ---
 router.get("/api/attendance", async (req, res) => {
   try {
