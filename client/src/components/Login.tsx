@@ -12,6 +12,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -28,29 +29,60 @@ export default function Login() {
 
       if (!response.ok) {
         // Get the error message from the response
-        const errorData = await response.json().catch(() => ({ message: "Invalid credentials" }));
-        throw new Error(errorData.message || "Invalid credentials");
+        let errorMsg = "Invalid username or password";
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.message || errorMsg;
+        } catch {
+          // If response can't be parsed as JSON, use default message
+        }
+        
+        // Set inline error message
+        setErrorMessage(errorMsg);
+        
+        // Show detailed error toast
+        toast({
+          title: "❌ Authentication Failed",
+          description: errorMsg,
+          variant: "destructive",
+          duration: 5000, // Show for 5 seconds
+        });
+        
+        return; // Exit early to prevent success handling
       }
 
       const data = await response.json();
+      
+      // Clear any previous error messages
+      setErrorMessage("");
       
       // Store user session data
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("isAuthenticated", "true");
       
       toast({
-        title: "Success",
-        description: "Logged in successfully",
+        title: "✅ Login Successful",
+        description: `Welcome back, ${data.user.fullName}!`,
+        duration: 3000,
       });
 
-      setLocation("/");
+      // Small delay to show success message before redirect
+      setTimeout(() => {
+        setLocation("/");
+      }, 500);
+
     } catch (error: any) {
       console.error("Login error:", error);
       
+      const connectionError = "Unable to connect to server. Please try again.";
+      setErrorMessage(connectionError);
+      
+      // Fallback error handling
       toast({
-        title: "Login Failed",
-        description: error.message || "Invalid username or password",
+        title: "❌ Connection Error",
+        description: connectionError,
         variant: "destructive",
+        duration: 5000,
       });
     } finally {
       setIsLoading(false);
@@ -82,6 +114,16 @@ export default function Login() {
 
           <CardContent className="px-6 pb-6">
             <form onSubmit={handleLogin} className="space-y-4">
+              {/* Error Alert */}
+              {errorMessage && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center space-x-2 animate-in slide-in-from-top-2 duration-300">
+                  <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                  <div className="text-sm text-red-800 font-medium">
+                    {errorMessage}
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-3">
                 <div className="space-y-1">
                   <Label htmlFor="username" className="text-slate-700 font-medium text-sm">
@@ -92,7 +134,10 @@ export default function Login() {
                     type="text"
                     placeholder="Enter your username"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      if (errorMessage) setErrorMessage(""); // Clear error on input
+                    }}
                     required
                     className="h-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                   />
@@ -108,7 +153,10 @@ export default function Login() {
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (errorMessage) setErrorMessage(""); // Clear error on input
+                      }}
                       required
                       className="h-10 pr-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                     />
