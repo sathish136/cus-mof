@@ -504,3 +504,6 @@ Changelog:
     - Includes validation, error handling, and progress feedback for import process
     - Resolves issue where latest ZK biometric devices show encrypted/corrupted employee names
     - Users can now easily fix name display by uploading Employee ID and Full Name mapping files
+    - Fixed JavaScript errors in EmployeeForm component by adding proper null checks for initialData
+    - Fixed type conversion error in employee deletion (string to number conversion)
+    - All navigation and back button issues resolved

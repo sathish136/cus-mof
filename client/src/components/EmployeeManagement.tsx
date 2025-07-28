@@ -57,13 +57,13 @@ interface EmployeeFormProps {
 function EmployeeForm({ onSubmit, onCancel, isPending, departments, initialData }: EmployeeFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [photoPreview, setPhotoPreview] = useState(initialData.photoUrl || null);
+  const [photoPreview, setPhotoPreview] = useState(initialData?.photoUrl || null);
   const [isAddDeptDialogOpen, setIsAddDeptDialogOpen] = useState(false);
   const [newDepartmentName, setNewDepartmentName] = useState("");
 
   const form = useForm<InsertEmployee>({
     resolver: zodResolver(insertEmployeeSchema),
-    defaultValues: initialData,
+    defaultValues: initialData || {},
   });
 
   const photoUploadMutation = useMutation({
