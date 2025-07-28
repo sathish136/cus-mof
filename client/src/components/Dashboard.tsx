@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Users, UserCheck, CalendarX, Clock, TrendingUp, Activity, AlertCircle } from "lucide-react";
+import { Users, UserCheck, CalendarX, Clock, TrendingUp, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -27,7 +28,17 @@ export default function Dashboard() {
     },
   });
 
-  if (statsLoading || activitiesLoading) {
+  // Fetch attendance trends data for the chart
+  const { data: attendanceTrends, isLoading: trendsLoading } = useQuery({
+    queryKey: ["/api/dashboard/attendance-trends"],
+    queryFn: async () => {
+      const response = await fetch("/api/dashboard/attendance-trends?days=7");
+      if (!response.ok) throw new Error("Failed to fetch attendance trends");
+      return response.json();
+    },
+  });
+
+  if (statsLoading || activitiesLoading || trendsLoading) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -152,12 +163,68 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <Activity className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">Chart Component</p>
-                <p className="text-sm text-gray-500">Attendance trends visualization</p>
-              </div>
+            <div className="h-64">
+              {attendanceTrends && attendanceTrends.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={attendanceTrends}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="#64748b"
+                      fontSize={12}
+                      tickFormatter={(value) => {
+                        const date = new Date(value);
+                        return `${date.getMonth() + 1}/${date.getDate()}`;
+                      }}
+                    />
+                    <YAxis stroke="#64748b" fontSize={12} />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }}
+                      labelFormatter={(value) => {
+                        const date = new Date(value);
+                        return date.toLocaleDateString();
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="present" 
+                      stroke="#10b981" 
+                      strokeWidth={3}
+                      dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                      name="Present"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="absent" 
+                      stroke="#ef4444" 
+                      strokeWidth={2}
+                      dot={{ fill: '#ef4444', strokeWidth: 2, r: 3 }}
+                      name="Absent"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="late" 
+                      stroke="#f59e0b" 
+                      strokeWidth={2}
+                      dot={{ fill: '#f59e0b', strokeWidth: 2, r: 3 }}
+                      name="Late"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full bg-gray-50 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <Activity className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600">No attendance data available</p>
+                    <p className="text-sm text-gray-500">Chart will appear when data is available</p>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -310,6 +310,71 @@ router.post("/api/upload", upload.single("file"), (req, res) => {
 });
 
 // --- Dashboard Routes ---
+
+// Attendance trends for dashboard chart
+router.get("/api/dashboard/attendance-trends", async (req, res) => {
+  try {
+    const { days = 7 } = req.query;
+    const daysNumber = parseInt(days as string, 10);
+    
+    // Get date range for the last N days
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysNumber + 1);
+    
+    // Get all employees count
+    const totalEmployees = await db.select({ count: sql<number>`count(*)` }).from(employees);
+    const totalCount = totalEmployees[0]?.count || 0;
+    
+    // Generate data for each day in the range
+    const trends = [];
+    for (let i = 0; i < daysNumber; i++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(startDate.getDate() + i);
+      const dateStr = currentDate.toISOString().split('T')[0];
+      
+      // Get attendance records for this date
+      const dayAttendance = await db.select({
+        status: attendance.status,
+        count: sql<number>`count(*)`
+      })
+      .from(attendance)
+      .where(
+        sql`DATE(${attendance.checkIn}) = ${dateStr}`
+      )
+      .groupBy(attendance.status);
+      
+      // Count by status
+      let present = 0;
+      let late = 0;
+      let absent = 0;
+      
+      dayAttendance.forEach((record) => {
+        if (record.status === 'present') present = record.count;
+        else if (record.status === 'late') late = record.count;
+        else if (record.status === 'half_day') late += record.count; // Group half-day with late
+      });
+      
+      // Calculate absent as total employees minus those who checked in
+      const totalPresent = present + late;
+      absent = Math.max(0, totalCount - totalPresent);
+      
+      trends.push({
+        date: dateStr,
+        present,
+        late,
+        absent,
+        total: totalCount
+      });
+    }
+    
+    res.json(trends);
+  } catch (error) {
+    console.error('Failed to fetch attendance trends:', error);
+    res.status(500).json({ message: 'Failed to fetch attendance trends' });
+  }
+});
+
 router.get("/api/dashboard/stats", async (req, res) => {
   try {
     const today = new Date();
