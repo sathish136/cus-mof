@@ -573,7 +573,7 @@ export default function EmployeeManagement() {
                         <Button variant="ghost" size="icon" onClick={() => openDialog('edit', employee)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteEmployeeMutation.mutate(employee.id)}>
+                        <Button variant="ghost" size="icon" onClick={() => deleteEmployeeMutation.mutate(parseInt(employee.id))}>
                           <UserX className="h-4 w-4" />
                         </Button>
                       </div>

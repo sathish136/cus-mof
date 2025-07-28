@@ -1,0 +1,46 @@
+chunk-RPCDYKBN.js?v=9d7017ab:14032 The above error occurred in the <EmployeeForm> component:
+
+    at EmployeeForm (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit.dev/src/components/EmployeeManagement.tsx?t=1753703294622:59:25)
+    at div
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-J2KA7NLM.js?v=9d7017ab:43:13
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…runner/workspace/node_modules/.vite/deps/chunk-OPOUOI6L.js?v=9d7017ab:63:7
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-E7TSFT4J.js?v=9d7017ab:79:13
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-E7TSFT4J.js?v=9d7017ab:56:13
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-J2KA7NLM.js?v=9d7017ab:43:13
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…runner/workspace/node_modules/.vite/deps/chunk-HFOQCBDA.js?v=9d7017ab:29:5
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…nner/workspace/node_modules/.vite/deps/chunk-ESECR34D.js?v=9d7017ab:234:13
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…nner/workspace/node_modules/.vite/deps/chunk-ESECR34D.js?v=9d7017ab:157:58
+    at Presence (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-NZP5GMFF.js?v=9d7017ab:24:11)
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…nner/workspace/node_modules/.vite/deps/chunk-ESECR34D.js?v=9d7017ab:148:64
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-E7TSFT4J.js?v=9d7017ab:79:13
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-E7TSFT4J.js?v=9d7017ab:56:13
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-J2KA7NLM.js?v=9d7017ab:43:13
+    at https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…nner/workspace/node_modules/.vite/deps/chunk-OPOUOI6L.js?v=9d7017ab:262:22
+    at Presence (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-NZP5GMFF.js?v=9d7017ab:24:11)
+    at Provider (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-U27FYV5Z.js?v=9d7017ab:38:15)
+    at DialogPortal (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…nner/workspace/node_modules/.vite/deps/chunk-ESECR34D.js?v=9d7017ab:110:11)
+    at _c3 (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit.dev/src/components/ui/dialog.tsx:52:12)
+    at Provider (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-U27FYV5Z.js?v=9d7017ab:38:15)
+    at Dialog (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…runner/workspace/node_modules/.vite/deps/chunk-ESECR34D.js?v=9d7017ab:50:5)
+    at div
+    at EmployeeManagement (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit.dev/src/components/EmployeeManagement.tsx?t=1753703294622:947:39)
+    at Route (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=9d7017ab:206:16)
+    at main
+    at div
+    at div
+    at Layout (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit.dev/src/components/Layout.tsx:32:34)
+    at div
+    at LicenseGuard (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit.dev/src/components/LicenseGuard.tsx:27:32)
+    at AuthGuard (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit.dev/src/components/AuthGuard.tsx:21:37)
+    at QueryClientProvider (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=9d7017ab:2934:3)
+    at App (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit.dev/src/App.tsx?t=1753703294622&v=kS4LeuJ6tzk4WxlZS57wL:41:39)
+    at Router (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…r/workspace/node_modules/.vite/deps/react-router-dom.js?v=9d7017ab:6200:13)
+    at BrowserRouter (https://dc814e9f-ca9d-4ed6-a414-7ac54e27008c-00-8k22eak48qew.janeway.replit…er/workspace/node_modules/.vite/deps/react-router-dom.js?v=9d7017ab:9270:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+chunk-RPCDYKBN.js?v=9d7017ab:9129 Uncaught TypeError: Cannot read properties of null (reading 'photoUrl')
+    at EmployeeForm (EmployeeManagement.tsx:60:64)
+﻿
+
