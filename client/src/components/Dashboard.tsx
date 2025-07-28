@@ -155,7 +155,7 @@ export default function Dashboard() {
       {/* Charts and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Attendance Chart */}
-        <Card className="lg:col-span-2 bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg">
+        <Card className="lg:col-span-2 bg-white border-gray-200 shadow-lg">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
