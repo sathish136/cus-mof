@@ -51,10 +51,10 @@ interface EmployeeFormProps {
   onCancel: () => void;
   isPending: boolean;
   departments: Department[];
-  initialData: Partial<InsertEmployee>;
+  initialData?: Partial<InsertEmployee>;
 }
 
-function EmployeeForm({ onSubmit, onCancel, isPending, departments, initialData }: EmployeeFormProps) {
+function EmployeeForm({ onSubmit, onCancel, isPending, departments, initialData = {} }: EmployeeFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [photoPreview, setPhotoPreview] = useState(initialData?.photoUrl || null);
@@ -63,7 +63,7 @@ function EmployeeForm({ onSubmit, onCancel, isPending, departments, initialData 
 
   const form = useForm<InsertEmployee>({
     resolver: zodResolver(insertEmployeeSchema),
-    defaultValues: initialData || {},
+    defaultValues: initialData,
   });
 
   const photoUploadMutation = useMutation({
@@ -411,7 +411,13 @@ export default function EmployeeManagement() {
   }, [employees, searchTerm, filters]);
 
   const handleAddSubmit = (data: InsertEmployee) => createEmployeeMutation.mutate(data);
-  const handleEditSubmit = (data: InsertEmployee) => updateEmployeeMutation.mutate({ ...selectedEmployee!, ...data });
+  const handleEditSubmit = (data: InsertEmployee) => {
+    if (!selectedEmployee) {
+      toast({ title: "Error", description: "No employee selected for editing", variant: "destructive" });
+      return;
+    }
+    updateEmployeeMutation.mutate({ ...selectedEmployee, ...data });
+  };
 
   const handleBulkUpdate = (updates: Partial<Employee>) => {
     bulkUpdateMutation.mutate({ employeeIds: selectedEmployees, updates });
@@ -599,7 +605,18 @@ export default function EmployeeManagement() {
             onCancel={closeDialogs}
             isPending={createEmployeeMutation.isPending || updateEmployeeMutation.isPending}
             departments={departments}
-            initialData={dialogs.add ? { employeeId: '', fullName: '', email: null, phone: null, departmentId: undefined, position: null, employeeGroup: 'group_a', status: 'active', role: 'user', photoUrl: null } : selectedEmployee!}
+            initialData={dialogs.add ? { 
+              employeeId: '', 
+              fullName: '', 
+              email: null, 
+              phone: null, 
+              departmentId: undefined, 
+              position: null, 
+              employeeGroup: 'group_a', 
+              status: 'active', 
+              role: 'user', 
+              photoUrl: null 
+            } : selectedEmployee || {}}
           />
         </DialogContent>
       </Dialog>
