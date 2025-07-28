@@ -65,10 +65,11 @@ function App() {
               <Route path="/profile" component={UserProfile} />
               <Route path="/notifications" component={Notifications} />
             </Layout>
-            <Toaster />
           </div>
         </LicenseGuard>
       </AuthGuard>
+      {/* Move Toaster outside AuthGuard so it's available for login screen too */}
+      <Toaster />
     </QueryClientProvider>
   );
 }

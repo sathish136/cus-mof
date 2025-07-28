@@ -27,7 +27,9 @@ export default function Login() {
       });
 
       if (!response.ok) {
-        throw new Error("Invalid credentials");
+        // Get the error message from the response
+        const errorData = await response.json().catch(() => ({ message: "Invalid credentials" }));
+        throw new Error(errorData.message || "Invalid credentials");
       }
 
       const data = await response.json();
@@ -43,9 +45,11 @@ export default function Login() {
 
       setLocation("/");
     } catch (error: any) {
+      console.error("Login error:", error);
+      
       toast({
-        title: "Error",
-        description: error.message || "Login failed",
+        title: "Login Failed",
+        description: error.message || "Invalid username or password",
         variant: "destructive",
       });
     } finally {
