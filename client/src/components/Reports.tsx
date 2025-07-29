@@ -3110,7 +3110,7 @@ export default function Reports() {
             {/* Summary */}
             <div className="mt-4 flex justify-end">
               <div className="border border-black p-2 bg-blue-100">
-                <div className="text-sm font-semibold">Total: {parseFloat(individualOfferData.summary.totalOfferHours || 0).toFixed(1)} hours</div>
+                <div className="text-sm font-semibold">Total: {individualOfferData.summary.totalOfferHours}</div>
                 <div className="text-xs">Basic salary: ___________________</div>
                 <div className="text-xs">Hour rate for 1/4 hours: ___________________</div>
                 <div className="text-xs">Total allowances for month of {individualOfferData.period.month}: ___________________</div>
