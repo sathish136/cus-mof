@@ -3652,9 +3652,14 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
         if (checkInDate && checkOutDate) {
           const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
           
-          // Calculate working time in minutes
-          const workingMs = checkOutDate.getTime() - checkInDate.getTime();
-          const totalWorkingMinutes = Math.floor(workingMs / (1000 * 60));
+          // Calculate working time based on displayed time format (HH:MM)
+          // Parse the displayed times to get exact minute calculation
+          const [inHour, inMin] = inTime.split(':').map(Number);
+          const [outHour, outMin] = outTime.split(':').map(Number);
+          
+          const totalInMinutes = (inHour * 60) + inMin;
+          const totalOutMinutes = (outHour * 60) + outMin;
+          const totalWorkingMinutes = totalOutMinutes - totalInMinutes;
           
           if (isWeekend) {
             // Weekend: all working hours as offer hours (full hours)

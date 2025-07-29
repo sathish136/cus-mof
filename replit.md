@@ -117,6 +117,11 @@ Changelog:
     • 30-minute minimum rule: Only shows 1/4 hours if excess working time is 30+ minutes
     • Weekend overtime: All working hours count as offer hours (if 30+ minutes)
     • Fixed calculation to show actual excess time instead of rounded blocks for regular days
+  - Fixed Individual 1/4 Offer Report time calculation accuracy issue:
+    • Replaced millisecond-based calculation with precise HH:MM format parsing
+    • Resolved 1-minute discrepancy where 09:36-17:51 showed 494 instead of 495 minutes
+    • Example: 09:36 to 17:51 now correctly shows 0.50 hours (30 minutes excess) instead of 0.00
+    • Calculation now matches exactly with displayed time format for accurate offer hours
 - July 29, 2025. Previous Migration from Replit Agent to Replit Environment:
   - Successfully migrated complete HR Attendance Management System from Replit Agent to standard Replit environment
   - Fixed 1/4 Offer Report calculation logic with proper Group A/B shift requirements:
