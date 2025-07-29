@@ -106,6 +106,8 @@ Changelog:
   - Fixed PDF export format to match Treasury Officers format exactly:
     • Completely removed "Status 2" column from both frontend preview and PDF export as requested
     • Updated table layout to show: Date, In Time, Out Time, Status 1, 1/4 Hours
+    • Fixed time format calculation: now shows proper hour:minute format (e.g., 1.30 hours instead of 1.50 hours)
+    • 90 minutes now displays as "1.30 hours", 75 minutes as "1.15 hours" (correct H.MM format)
     • PDF now matches the exact simplified layout required by the Ministry
   - Application running successfully on port 5000 with biometric device integration
   - All database tables created and functional: employees, departments, attendance, leave_requests, overtime_requests, biometric_devices, holidays, short_leave_requests

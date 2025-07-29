@@ -3711,11 +3711,12 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
       let formattedOfferHours = '0.00';
       if (offerHours > 0) {
         if (offerHours >= 59) {
-          // Convert to hours format (e.g., 1.25 hours for 75 minutes)
+          // Convert to proper hour:minute format (e.g., 1.30 hours for 90 minutes)
           const hours = Math.floor(offerHours / 60);
           const remainingMinutes = offerHours % 60;
-          const decimalHours = hours + (remainingMinutes / 60);
-          formattedOfferHours = `${decimalHours.toFixed(2)} hours`;
+          // Format as H.MM (where MM is actual minutes, not decimal)
+          const formattedMinutes = remainingMinutes.toString().padStart(2, '0');
+          formattedOfferHours = `${hours}.${formattedMinutes} hours`;
         } else {
           // Show as minutes for values under 59
           formattedOfferHours = `${offerHours}mins`;
@@ -3748,7 +3749,7 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
       dailyData,
       summary: {
         totalOfferHours: totalOfferHours >= 60 
-          ? `${Math.floor(totalOfferHours / 60)}.${Math.round(((totalOfferHours % 60) / 60) * 100)} hours`
+          ? `${Math.floor(totalOfferHours / 60)}.${(totalOfferHours % 60).toString().padStart(2, '0')} hours`
           : totalOfferHours > 0 
             ? `${totalOfferHours} minutes`
             : "0 minutes",
