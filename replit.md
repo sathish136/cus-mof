@@ -99,6 +99,10 @@ Changelog:
 - July 04, 2025. Initial setup
 - July 07, 2025. Migration from Replit Agent to Replit environment completed
 - July 29, 2025. Migration from Replit Agent to Replit Environment Completed Successfully (LATEST):
+  - Added Status 2 column to Individual 1/4 Offer Report as requested (copy of Status 1 column)
+  - Updated both frontend table display and PDF export to include Status 2 column
+  - Backend already correctly implemented to return status2 field with same value as status1
+  - Report now shows: Date, In Time, Out Time, Status 1, Status 2, 1/4 Hours columns as requested
   - Successfully migrated complete HR Attendance Management System from Replit Agent to standard Replit environment
   - Created PostgreSQL database with full schema migration and sample data
   - Fixed Individual 1/4 Offer Report formatting: times 59+ minutes now display in hours format (e.g., "1.25 hours" instead of "75mins")
