@@ -1293,8 +1293,8 @@ export default function Reports() {
                     <th>In Time</th>
                     <th>Out Time</th>
                     <th>Status 1</th>
-                    <th>Status 2</th>
-                    <th style="background-color: #d1ecf1;">1/4 Hours</th>
+                    <th style="background-color: #ffd700;">Status 2</th>
+                    <th>1/4 Hours</th>
                   </tr>
                 </thead>
                 <tbody>`;
@@ -1308,8 +1308,8 @@ export default function Reports() {
                     <td>${day.inTime || '-'}</td>
                     <td>${day.outTime || '-'}</td>
                     <td>${day.status1 || '-'}</td>
-                    <td>${day.status2 || '-'}</td>
-                    <td style="font-weight: bold; background-color: #e7f3ff;">${day.offerHours || '0.00'}</td>
+                    <td style="background-color: #ffd700;">${day.status1 || '-'}</td>
+                    <td style="font-weight: bold;">${day.offerHours || '0.00'}</td>
                   </tr>`;
         });
       }
@@ -3084,8 +3084,9 @@ export default function Reports() {
                   <th className="border border-black p-1 text-center font-semibold">Date</th>
                   <th className="border border-black p-1 text-center font-semibold">In Time</th>
                   <th className="border border-black p-1 text-center font-semibold">Out Time</th>
-                  <th className="border border-black p-1 text-center font-semibold">Status</th>
-                  <th className="border border-black p-1 text-center font-semibold bg-blue-200">1/4 Hours</th>
+                  <th className="border border-black p-1 text-center font-semibold">Status 1</th>
+                  <th className="border border-black p-1 text-center font-semibold bg-yellow-300">Status 2</th>
+                  <th className="border border-black p-1 text-center font-semibold">1/4 Hours</th>
                 </tr>
               </thead>
               <tbody>
@@ -3097,7 +3098,8 @@ export default function Reports() {
                     <td className="border border-black p-1 text-center">{day.inTime}</td>
                     <td className="border border-black p-1 text-center">{day.outTime}</td>
                     <td className="border border-black p-1 text-center">{day.status1}</td>
-                    <td className="border border-black p-1 text-center bg-blue-50 font-semibold">
+                    <td className="border border-black p-1 text-center bg-yellow-300">{day.status1}</td>
+                    <td className="border border-black p-1 text-center font-semibold">
                       {parseFloat(day.offerHours) > 0 ? day.offerHours : '00:00'}
                     </td>
                   </tr>
