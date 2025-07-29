@@ -3702,7 +3702,7 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
         outTime,
         status1,
         status2,
-        offerHours: offerHours.toFixed(2)
+        offerHours: offerHours > 0 ? `${offerHours.toFixed(2)}hr` : '0.00'
       });
     }
 
