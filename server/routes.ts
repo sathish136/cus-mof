@@ -3662,10 +3662,10 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
           const totalWorkingMinutes = totalOutMinutes - totalInMinutes;
           
           if (isWeekend) {
-            // Weekend: all working hours as offer hours (full hours)
+            // Weekend: all working minutes as offer minutes (full minutes)
             // Only show if working 30+ minutes
             if (totalWorkingMinutes >= 30) {
-              offerHours = totalWorkingMinutes / 60;
+              offerHours = totalWorkingMinutes; // Store actual minutes instead of converting to hours
             }
           } else {
             // Regular day: calculate based on group shift requirements
@@ -3678,7 +3678,7 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
             
             // Only show 1/4 hours if excess is 30+ minutes
             if (excessMinutes >= 30) {
-              offerHours = excessMinutes / 60;
+              offerHours = excessMinutes; // Store actual minutes instead of converting to hours
             }
           }
         }
@@ -3702,7 +3702,7 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
         outTime,
         status1,
         status2,
-        offerHours: offerHours > 0 ? `${offerHours.toFixed(2)}hr` : '0.00'
+        offerHours: offerHours > 0 ? `${offerHours}mins` : '0.00'
       });
     }
 
