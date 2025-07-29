@@ -3084,8 +3084,7 @@ export default function Reports() {
                   <th className="border border-black p-1 text-center font-semibold">Date</th>
                   <th className="border border-black p-1 text-center font-semibold">In Time</th>
                   <th className="border border-black p-1 text-center font-semibold">Out Time</th>
-                  <th className="border border-black p-1 text-center font-semibold">Status 1</th>
-                  <th className="border border-black p-1 text-center font-semibold">Status 2</th>
+                  <th className="border border-black p-1 text-center font-semibold">Status</th>
                   <th className="border border-black p-1 text-center font-semibold bg-blue-200">1/4 Hours</th>
                 </tr>
               </thead>
@@ -3098,7 +3097,6 @@ export default function Reports() {
                     <td className="border border-black p-1 text-center">{day.inTime}</td>
                     <td className="border border-black p-1 text-center">{day.outTime}</td>
                     <td className="border border-black p-1 text-center">{day.status1}</td>
-                    <td className="border border-black p-1 text-center">{day.status2}</td>
                     <td className="border border-black p-1 text-center bg-blue-50 font-semibold">
                       {parseFloat(day.offerHours) > 0 ? day.offerHours : '00:00'}
                     </td>
