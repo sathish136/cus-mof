@@ -3720,7 +3720,11 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
       },
       dailyData,
       summary: {
-        totalOfferHours: Math.round(totalOfferHours * 100) / 100,
+        totalOfferHours: totalOfferHours >= 60 
+          ? `${Math.floor(totalOfferHours / 60)}.${Math.round(((totalOfferHours % 60) / 60) * 100)} hours`
+          : totalOfferHours > 0 
+            ? `${totalOfferHours} minutes`
+            : "0 minutes",
         totalDays: dailyData.length
       }
     });
