@@ -104,9 +104,9 @@ Changelog:
   - Fixed Individual 1/4 Offer Report formatting: times 59+ minutes now display in hours format (e.g., "1.25 hours" instead of "75mins")
   - Removed "Print Report" button from Individual 1/4 Offer Report while keeping PDF export functionality intact
   - Fixed PDF export format to match Treasury Officers format exactly:
-    • Added "Status 2" column with yellow background highlighting as shown in official Treasury format
-    • Updated both frontend display and PDF export to include proper color coding
-    • PDF now matches the exact layout and colors from the Ministry's Treasury Officers format
+    • Completely removed "Status 2" column from both frontend preview and PDF export as requested
+    • Updated table layout to show: Date, In Time, Out Time, Status 1, 1/4 Hours
+    • PDF now matches the exact simplified layout required by the Ministry
   - Application running successfully on port 5000 with biometric device integration
   - All database tables created and functional: employees, departments, attendance, leave_requests, overtime_requests, biometric_devices, holidays, short_leave_requests
   - Auto-sync system connecting to biometric devices and processing attendance data
