@@ -3542,9 +3542,21 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
 
     const employee = employeeResult.rows[0];
 
-    // Create proper date range for the query
+    // Validate and create proper date range for the query
+    if (!startDate || !endDate || startDate === '' || endDate === '') {
+      return res.status(400).json({ message: 'Start date and end date are required' });
+    }
+
     const startDateStr = startDate as string;
     const endDateStr = endDate as string;
+
+    // Validate date format
+    const startDateObj = new Date(startDateStr);
+    const endDateObj = new Date(endDateStr);
+    
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
 
     // Get all attendance records for the employee in the period using SQL
     const attendanceRecords = await db.execute(sql`
@@ -3562,17 +3574,23 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
     const overtimeStartTime = employee.employee_group === 'group_a' ? '16:15' : '16:45';
 
     // Create date range for iteration
-    const startOfPeriod = new Date(startDateStr);
-    const endOfPeriod = new Date(endDateStr);
+    const startOfPeriod = new Date(startDateObj);
+    const endOfPeriod = new Date(endDateObj);
     
     for (let date = new Date(startOfPeriod); date <= endOfPeriod; date.setDate(date.getDate() + 1)) {
       const currentDate = new Date(date);
       const dayOfWeek = currentDate.getDay();
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       
-      const attendanceRecord = attendanceRecords.rows.find(record => 
-        new Date(record.date).toDateString() === currentDate.toDateString()
-      );
+      const attendanceRecord = attendanceRecords.rows.find(record => {
+        if (!record.date) return false;
+        try {
+          const recordDate = new Date(record.date as string);
+          return recordDate.toDateString() === currentDate.toDateString();
+        } catch {
+          return false;
+        }
+      });
 
       let inTime = '';
       let outTime = '';
@@ -3630,32 +3648,34 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
             status2 = 'MS';
         }
 
-        // Calculate 1/4 offer hours with rounding (only if dates are valid)
+        // Calculate 1/4 offer hours with proper Group A/B calculation
         if (checkInDate && checkOutDate) {
           const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
           
           if (isWeekend) {
-            // Weekend: all working hours as offer hours
+            // Weekend: all working hours as offer hours (full hours)
             const workingMs = checkOutDate.getTime() - checkInDate.getTime();
-            const rawHours = workingMs / (1000 * 60 * 60);
+            const totalWorkingMinutes = Math.floor(workingMs / (1000 * 60));
             
-            // Round down to nearest 15-minute block
-            const totalMinutes = Math.floor(rawHours * 60);
-            const roundedMinutes = Math.floor(totalMinutes / 15) * 15;
-            offerHours = roundedMinutes / 60;
+            // Only show if working 30+ minutes, round down to nearest 15-minute block
+            if (totalWorkingMinutes >= 30) {
+              const roundedMinutes = Math.floor(totalWorkingMinutes / 15) * 15;
+              offerHours = roundedMinutes / 60;
+            }
           } else {
-            // Regular day: only after overtime start time
-            const [overtimeHour, overtimeMinute] = overtimeStartTime.split(':').map(Number);
-            const overtimeStart = new Date(currentDate);
-            overtimeStart.setHours(overtimeHour, overtimeMinute, 0, 0);
+            // Regular day: calculate based on group shift requirements
+            const workingMs = checkOutDate.getTime() - checkInDate.getTime();
+            const totalWorkingMinutes = Math.floor(workingMs / (1000 * 60));
             
-            if (checkOutDate > overtimeStart) {
-              const overtimeMs = checkOutDate.getTime() - overtimeStart.getTime();
-              const rawHours = Math.max(0, overtimeMs / (1000 * 60 * 60));
-              
-              // Round down to nearest 15-minute block
-              const totalMinutes = Math.floor(rawHours * 60);
-              const roundedMinutes = Math.floor(totalMinutes / 15) * 15;
+            // Define required working minutes for each group
+            const requiredMinutes = employee.employee_group === 'group_a' ? 465 : 495; // 7h45m or 8h15m
+            
+            // Calculate excess minutes beyond required shift
+            const excessMinutes = totalWorkingMinutes - requiredMinutes;
+            
+            // Only show 1/4 hours if excess is 30+ minutes
+            if (excessMinutes >= 30) {
+              const roundedMinutes = Math.floor(excessMinutes / 15) * 15;
               offerHours = roundedMinutes / 60;
             }
           }
