@@ -3657,10 +3657,9 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
             const workingMs = checkOutDate.getTime() - checkInDate.getTime();
             const totalWorkingMinutes = Math.floor(workingMs / (1000 * 60));
             
-            // Only show if working 30+ minutes, round down to nearest 15-minute block
+            // Only show if working 30+ minutes
             if (totalWorkingMinutes >= 30) {
-              const roundedMinutes = Math.floor(totalWorkingMinutes / 15) * 15;
-              offerHours = roundedMinutes / 60;
+              offerHours = totalWorkingMinutes / 60;
             }
           } else {
             // Regular day: calculate based on group shift requirements
@@ -3668,15 +3667,16 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
             const totalWorkingMinutes = Math.floor(workingMs / (1000 * 60));
             
             // Define required working minutes for each group
-            const requiredMinutes = employee.employee_group === 'group_a' ? 465 : 495; // 7h45m or 8h15m
+            // Group A: 8:30 AM - 4:15 PM = 7 hrs 45 mins = 465 minutes  
+            // Group B: 8:30 AM - 4:45 PM = 8 hrs 15 mins = 495 minutes
+            const requiredMinutes = employee.employee_group === 'group_a' ? 465 : 495;
             
             // Calculate excess minutes beyond required shift
             const excessMinutes = totalWorkingMinutes - requiredMinutes;
             
             // Only show 1/4 hours if excess is 30+ minutes
             if (excessMinutes >= 30) {
-              const roundedMinutes = Math.floor(excessMinutes / 15) * 15;
-              offerHours = roundedMinutes / 60;
+              offerHours = excessMinutes / 60;
             }
           }
         }
