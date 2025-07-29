@@ -3133,16 +3133,7 @@ export default function Reports() {
           </div>
         </div>
 
-        {/* Print Button */}
-        <div className="text-center mt-4 print:hidden">
-          <Button 
-            onClick={() => window.print()} 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Print Report
-          </Button>
-        </div>
+
       </div>
     );
   };

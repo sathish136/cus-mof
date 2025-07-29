@@ -100,6 +100,14 @@ Changelog:
 - July 07, 2025. Migration from Replit Agent to Replit environment completed
 - July 29, 2025. Migration from Replit Agent to Replit Environment Completed Successfully (LATEST):
   - Successfully migrated complete HR Attendance Management System from Replit Agent to standard Replit environment
+  - Created PostgreSQL database with full schema migration and sample data
+  - Fixed Individual 1/4 Offer Report formatting: times 59+ minutes now display in hours format (e.g., "1.25 hours" instead of "75mins")
+  - Removed "Print Report" button from Individual 1/4 Offer Report while keeping PDF export functionality intact
+  - Application running successfully on port 5000 with biometric device integration
+  - All database tables created and functional: employees, departments, attendance, leave_requests, overtime_requests, biometric_devices, holidays, short_leave_requests
+  - Auto-sync system connecting to biometric devices and processing attendance data
+  - Migration completed successfully - system ready for full operation
+  - Successfully migrated complete HR Attendance Management System from Replit Agent to standard Replit environment
   - Fixed 1/4 Offer Report calculation logic with proper Group A/B shift requirements:
     • Group A: 8:30 AM - 4:15 PM (7 hours 45 minutes = 465 minutes)
     • Group B: 8:30 AM - 4:45 PM (8 hours 15 minutes = 495 minutes)
