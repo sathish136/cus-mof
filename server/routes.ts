@@ -3707,6 +3707,21 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
 
       totalOfferHours += offerHours;
 
+      // Format offer hours: 59+ minutes show as hours, below 59 show as minutes
+      let formattedOfferHours = '0.00';
+      if (offerHours > 0) {
+        if (offerHours >= 59) {
+          // Convert to hours format (e.g., 1.25 hours for 75 minutes)
+          const hours = Math.floor(offerHours / 60);
+          const remainingMinutes = offerHours % 60;
+          const decimalHours = hours + (remainingMinutes / 60);
+          formattedOfferHours = `${decimalHours.toFixed(2)} hours`;
+        } else {
+          // Show as minutes for values under 59
+          formattedOfferHours = `${offerHours}mins`;
+        }
+      }
+
       dailyData.push({
         date: currentDate.toISOString().split('T')[0],
         dayName: dayNames[dayOfWeek],
@@ -3714,7 +3729,7 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
         outTime,
         status1,
         status2,
-        offerHours: offerHours > 0 ? `${offerHours}mins` : '0.00'
+        offerHours: formattedOfferHours
       });
     }
 
