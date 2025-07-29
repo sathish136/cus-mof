@@ -3652,21 +3652,18 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
         if (checkInDate && checkOutDate) {
           const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
           
+          // Calculate working time in minutes
+          const workingMs = checkOutDate.getTime() - checkInDate.getTime();
+          const totalWorkingMinutes = Math.floor(workingMs / (1000 * 60));
+          
           if (isWeekend) {
             // Weekend: all working hours as offer hours (full hours)
-            const workingMs = checkOutDate.getTime() - checkInDate.getTime();
-            const totalWorkingMinutes = Math.floor(workingMs / (1000 * 60));
-            
             // Only show if working 30+ minutes
             if (totalWorkingMinutes >= 30) {
               offerHours = totalWorkingMinutes / 60;
             }
           } else {
             // Regular day: calculate based on group shift requirements
-            const workingMs = checkOutDate.getTime() - checkInDate.getTime();
-            const totalWorkingMinutes = Math.floor(workingMs / (1000 * 60));
-            
-            // Define required working minutes for each group
             // Group A: 8:30 AM - 4:15 PM = 7 hrs 45 mins = 465 minutes  
             // Group B: 8:30 AM - 4:45 PM = 8 hrs 15 mins = 495 minutes
             const requiredMinutes = employee.employee_group === 'group_a' ? 465 : 495;
