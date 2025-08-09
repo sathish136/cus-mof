@@ -5,6 +5,7 @@ This project is a comprehensive HR Attendance Management System for the Ministry
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
+Excel Report Formatting: Professional A4 landscape layout with proper alignment, color coding for status values, and printable format for monthly attendance reports.
 
 ## System Architecture
 

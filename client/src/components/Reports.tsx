@@ -455,7 +455,7 @@ export default function Reports() {
       let worksheet: any;
       
       if (reportType === "monthly-attendance") {
-        // Create detailed monthly attendance sheet matching your exact format
+        // Create professional A4 landscape formatted monthly attendance sheet
         const start = new Date(startDate);
         const end = new Date(endDate);
         const days: Date[] = [];
@@ -463,109 +463,157 @@ export default function Reports() {
           days.push(new Date(d));
         }
 
-        // Create a professional table format for each employee
+        // Clear previous header data and create professional header
+        worksheetData.length = 0;
+        
+        // Professional Report Header
+        worksheetData.push(['MINISTRY OF FINANCE SRI LANKA']);
+        worksheetData.push(['Human Resources Department']);
+        worksheetData.push(['']);
+        worksheetData.push(['MONTHLY ATTENDANCE SHEET']);
+        worksheetData.push(['']);
+        worksheetData.push([`Period: ${start.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} to ${end.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`]);
+        worksheetData.push([`Report Month: ${start.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`]);
+        worksheetData.push([`Total Employees: ${data.length}`]);
+        worksheetData.push([`Generated: ${now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} at ${now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`]);
+        worksheetData.push(['']);
+        worksheetData.push(['Applied Filters:']);
+        worksheetData.push([`Employee: ${selectedEmployee === 'all' ? 'All Employees' : selectedEmployee}   |   Group: ${selectedGroup === 'all' ? 'All Groups' : selectedGroup === 'group_a' ? 'Group A' : 'Group B'}`]);
+        worksheetData.push(['']);
+
+        // Create optimized layout for A4 landscape (maximum ~30 columns)
         data.forEach((emp: any, empIndex: number) => {
-          // Employee header section with borders
-          worksheetData.push([]);
-          worksheetData.push([]);
+          // Employee section header
+          worksheetData.push(['']);
           
-          // Main employee info header
-          const empHeaderRow = [`EMPLOYEE: ${emp.fullName} | ID: ${emp.employeeId} | DEPT: ${emp.department || 'N/A'} | GROUP: ${emp.employeeGroup === 'group_a' ? 'A' : 'B'}`];
-          for (let i = 1; i < days.length + 1; i++) {
-            empHeaderRow.push('');
+          // Employee details row
+          const empInfoRow = ['EMPLOYEE:', emp.fullName || 'N/A', 'ID:', emp.employeeId || 'N/A', 'DEPT:', emp.department || 'N/A', 'GROUP:', emp.employeeGroup === 'group_a' ? 'Group A' : 'Group B'];
+          // Fill remaining columns for proper alignment
+          while (empInfoRow.length < Math.min(days.length + 2, 32)) {
+            empInfoRow.push('');
           }
-          worksheetData.push(empHeaderRow);
+          worksheetData.push(empInfoRow);
           
-          // Create table structure with proper headers
-          worksheetData.push([]);
+          worksheetData.push(['']);
           
-          // Day names header
-          const dayNamesRow = [''];
+          // Create day headers row - optimized for landscape view
+          const dayHeaderRow = [''];
+          const dateRow = [''];
+          
           days.forEach(day => {
-            const dayName = day.toLocaleDateString('en-GB', { weekday: 'short' });
-            dayNamesRow.push(dayName.toUpperCase());
+            const dayName = day.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase();
+            const dateNum = day.getDate();
+            dayHeaderRow.push(dayName);
+            dateRow.push(dateNum.toString().padStart(2, '0'));
           });
-          worksheetData.push(dayNamesRow);
           
-          // Date numbers header  
-          const dateNumbersRow = [''];
-          days.forEach(day => {
-            dateNumbersRow.push(day.getDate().toString().padStart(2, '0'));
-          });
-          worksheetData.push(dateNumbersRow);
+          worksheetData.push(dayHeaderRow);
+          worksheetData.push(dateRow);
           
-          // Separator row
-          const separatorRow = Array(days.length + 1).fill('═══════');
+          // Separator line
+          const separatorRow = ['─────────'];
+          days.forEach(() => separatorRow.push('──────'));
           worksheetData.push(separatorRow);
           
-          // Data rows with proper structure
-          const timeRows = [
-            { label: 'IN TIME', key: 'inTime' },
-            { label: 'OUT TIME', key: 'outTime' }, 
-            { label: 'WORKED HRS', key: 'workedHours' },
-            { label: 'STATUS', key: 'status' },
-            { label: 'OVERTIME', key: 'overtimeHours' }
+          // Attendance data rows - compact layout
+          const attendanceRows = [
+            { label: 'IN TIME', field: 'inTime' },
+            { label: 'OUT TIME', field: 'outTime' },
+            { label: 'WORKED HRS', field: 'workedHours' },
+            { label: 'STATUS', field: 'status' },
+            { label: 'OVERTIME', field: 'overtimeHours' }
           ];
           
-          timeRows.forEach(timeRow => {
-            const row = [timeRow.label];
+          attendanceRows.forEach(rowDef => {
+            const dataRow = [rowDef.label];
+            
             days.forEach(day => {
               const dayKey = day.getDate();
               const dayData = emp.dailyData?.[dayKey];
               
-              let value = '-';
+              let cellValue = '00:00';
               if (dayData) {
-                switch (timeRow.key) {
+                switch (rowDef.field) {
                   case 'inTime':
-                    value = dayData.inTime || '-';
+                    cellValue = dayData.inTime || '00:00';
                     break;
                   case 'outTime':
-                    value = dayData.outTime || '-';
+                    cellValue = dayData.outTime || '00:00';
                     break;
                   case 'workedHours':
-                    value = dayData.workedHours || '00:00';
+                    cellValue = dayData.workedHours || '00:00';
                     break;
                   case 'status':
-                    value = dayData.status || 'A';
+                    cellValue = dayData.status || 'A';
                     break;
                   case 'overtimeHours':
                     if (dayData.overtimeHours && parseFloat(dayData.overtimeHours) > 0) {
-                      value = parseFloat(dayData.overtimeHours).toFixed(2) + 'h';
+                      cellValue = parseFloat(dayData.overtimeHours).toFixed(2);
                     } else {
-                      value = '-';
+                      cellValue = '00:00';
                     }
                     break;
                 }
               }
-              row.push(value);
+              dataRow.push(cellValue);
             });
-            worksheetData.push(row);
+            
+            worksheetData.push(dataRow);
           });
           
-          // Bottom border
-          const bottomBorderRow = Array(days.length + 1).fill('═══════');
-          worksheetData.push(bottomBorderRow);
+          // Bottom separator
+          const bottomSeparatorRow = ['─────────'];
+          days.forEach(() => bottomSeparatorRow.push('──────'));
+          worksheetData.push(bottomSeparatorRow);
           
-          // Add spacing between employees
-          worksheetData.push([]);
-          worksheetData.push([]);
+          // Add spacing between employees (reduced for A4 fit)
+          worksheetData.push(['']);
         });
         
         worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
         
-        // Set optimal column widths
+        // A4 Landscape optimized column widths
         const columnWidths = [
-          { wch: 12 }, // First column for labels
+          { wch: 11 }, // Row labels column
         ];
         
-        // Set consistent width for day columns
+        // Set uniform column widths for days (optimized for A4 landscape)
         days.forEach(() => {
-          columnWidths.push({ wch: 10 }); // Day columns - wider for better readability
+          columnWidths.push({ wch: 8.5 }); // Compact but readable day columns
         });
         
         worksheet['!cols'] = columnWidths;
+
+        // Set page setup for A4 landscape
+        worksheet['!pageSetup'] = {
+          paperSize: 9, // A4
+          orientation: 'landscape',
+          scale: 85, // Slightly reduced to fit more content
+          fitToWidth: 1,
+          fitToHeight: 0, // Allow multiple pages vertically if needed
+          horizontalDpi: 300,
+          verticalDpi: 300,
+          printArea: `A1:${XLSX.utils.encode_col(days.length + 1)}${worksheetData.length}`,
+          margins: {
+            left: 0.5,
+            right: 0.5,
+            top: 0.75,
+            bottom: 0.75,
+            header: 0.3,
+            footer: 0.3
+          }
+        };
+
+        // Print settings for professional output
+        worksheet['!printOptions'] = {
+          headings: false,
+          gridLines: true,
+          gridLinesSet: true,
+          horizontalCentered: true,
+          verticalCentered: false
+        };
         
-        // Enhanced cell styling with borders and colors
+        // Professional cell styling optimized for A4 landscape printing
         const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z200');
         for (let R = range.s.r; R <= range.e.r; ++R) {
           for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -574,85 +622,158 @@ export default function Reports() {
             
             const cellValue = worksheet[cellAddress].v?.toString() || '';
             
-            // Style employee header rows
-            if (cellValue.includes('EMPLOYEE:')) {
+            // Style main report header
+            if (cellValue.includes('MINISTRY OF FINANCE') || cellValue.includes('MONTHLY ATTENDANCE SHEET')) {
               worksheet[cellAddress].s = {
-                font: { bold: true, sz: 14, color: { rgb: 'FFFFFF' } },
+                font: { bold: true, sz: 16, color: { rgb: '1F2937' } },
                 alignment: { horizontal: 'center', vertical: 'center' },
-                fill: { fgColor: { rgb: '1E3A8A' } },
+                fill: { fgColor: { rgb: 'F9FAFB' } }
+              };
+            }
+            
+            // Style sub-headers
+            else if (cellValue.includes('Human Resources Department') || cellValue.includes('Period:') || 
+                     cellValue.includes('Report Month:') || cellValue.includes('Generated:')) {
+              worksheet[cellAddress].s = {
+                font: { bold: true, sz: 12, color: { rgb: '374151' } },
+                alignment: { horizontal: 'center', vertical: 'center' },
+                fill: { fgColor: { rgb: 'F9FAFB' } }
+              };
+            }
+            
+            // Style employee information rows
+            else if (cellValue === 'EMPLOYEE:' || cellValue === 'ID:' || cellValue === 'DEPT:' || cellValue === 'GROUP:') {
+              worksheet[cellAddress].s = {
+                font: { bold: true, sz: 11, color: { rgb: 'FFFFFF' } },
+                alignment: { horizontal: 'center', vertical: 'center' },
+                fill: { fgColor: { rgb: '3B82F6' } },
                 border: {
-                  top: { style: 'thick', color: { rgb: '000000' } },
-                  bottom: { style: 'thick', color: { rgb: '000000' } },
-                  left: { style: 'thick', color: { rgb: '000000' } },
-                  right: { style: 'thick', color: { rgb: '000000' } }
+                  top: { style: 'medium', color: { rgb: '1E40AF' } },
+                  bottom: { style: 'medium', color: { rgb: '1E40AF' } },
+                  left: { style: 'medium', color: { rgb: '1E40AF' } },
+                  right: { style: 'medium', color: { rgb: '1E40AF' } }
                 }
               };
             }
             
-            // Style day names and date headers
-            else if (['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].includes(cellValue) ||
-                     /^\d{2}$/.test(cellValue)) {
+            // Style day headers (MON, TUE, etc.)
+            else if (['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].includes(cellValue)) {
+              const isWeekend = ['SAT', 'SUN'].includes(cellValue);
               worksheet[cellAddress].s = {
-                font: { bold: true, sz: 11 },
+                font: { bold: true, sz: 10, color: { rgb: isWeekend ? 'DC2626' : '1F2937' } },
                 alignment: { horizontal: 'center', vertical: 'center' },
-                fill: { fgColor: { rgb: 'E5E7EB' } },
+                fill: { fgColor: { rgb: isWeekend ? 'FEE2E2' : 'E5E7EB' } },
                 border: {
-                  top: { style: 'medium', color: { rgb: '000000' } },
-                  bottom: { style: 'medium', color: { rgb: '000000' } },
-                  left: { style: 'medium', color: { rgb: '000000' } },
-                  right: { style: 'medium', color: { rgb: '000000' } }
+                  top: { style: 'medium', color: { rgb: '374151' } },
+                  bottom: { style: 'thin', color: { rgb: '6B7280' } },
+                  left: { style: 'thin', color: { rgb: '6B7280' } },
+                  right: { style: 'thin', color: { rgb: '6B7280' } }
                 }
               };
             }
             
-            // Style time row labels
+            // Style date numbers (01, 02, etc.)
+            else if (/^\d{2}$/.test(cellValue)) {
+              const dayNum = parseInt(cellValue);
+              // Determine if this is a weekend based on the day and current month
+              const currentDate = new Date(start.getFullYear(), start.getMonth(), dayNum);
+              const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+              
+              worksheet[cellAddress].s = {
+                font: { bold: true, sz: 10, color: { rgb: isWeekend ? 'DC2626' : '1F2937' } },
+                alignment: { horizontal: 'center', vertical: 'center' },
+                fill: { fgColor: { rgb: isWeekend ? 'FEE2E2' : 'F3F4F6' } },
+                border: {
+                  top: { style: 'thin', color: { rgb: '6B7280' } },
+                  bottom: { style: 'medium', color: { rgb: '374151' } },
+                  left: { style: 'thin', color: { rgb: '6B7280' } },
+                  right: { style: 'thin', color: { rgb: '6B7280' } }
+                }
+              };
+            }
+            
+            // Style row labels with color coding
             else if (['IN TIME', 'OUT TIME', 'WORKED HRS', 'STATUS', 'OVERTIME'].includes(cellValue)) {
-              const bgColors = {
-                'IN TIME': 'FEF3C7',
-                'OUT TIME': 'D1FAE5', 
-                'WORKED HRS': 'DBEAFE',
-                'STATUS': 'F3F4F6',
-                'OVERTIME': 'FED7AA'
+              const rowStyles = {
+                'IN TIME': { bg: 'FEF3C7', text: '92400E' },      // Amber
+                'OUT TIME': { bg: 'D1FAE5', text: '065F46' },     // Emerald
+                'WORKED HRS': { bg: 'DBEAFE', text: '1E40AF' },   // Blue
+                'STATUS': { bg: 'E5E7EB', text: '374151' },       // Gray
+                'OVERTIME': { bg: 'FED7AA', text: 'C2410C' }      // Orange
               };
+              
+              const style = rowStyles[cellValue as keyof typeof rowStyles];
               worksheet[cellAddress].s = {
-                font: { bold: true, sz: 10 },
+                font: { bold: true, sz: 10, color: { rgb: style.text } },
                 alignment: { horizontal: 'center', vertical: 'center' },
-                fill: { fgColor: { rgb: bgColors[cellValue as keyof typeof bgColors] } },
+                fill: { fgColor: { rgb: style.bg } },
                 border: {
-                  top: { style: 'medium', color: { rgb: '000000' } },
-                  bottom: { style: 'medium', color: { rgb: '000000' } },
-                  left: { style: 'thick', color: { rgb: '000000' } },
-                  right: { style: 'medium', color: { rgb: '000000' } }
+                  top: { style: 'medium', color: { rgb: '374151' } },
+                  bottom: { style: 'medium', color: { rgb: '374151' } },
+                  left: { style: 'thick', color: { rgb: '1F2937' } },
+                  right: { style: 'thin', color: { rgb: '6B7280' } }
                 }
               };
             }
             
-            // Style separator rows
-            else if (cellValue.includes('═══')) {
+            // Style separator lines
+            else if (cellValue.includes('─')) {
               worksheet[cellAddress].s = {
-                font: { bold: true },
+                font: { bold: false, sz: 8 },
                 alignment: { horizontal: 'center', vertical: 'center' },
-                fill: { fgColor: { rgb: '6B7280' } },
+                fill: { fgColor: { rgb: '9CA3AF' } },
                 border: {
-                  top: { style: 'thick', color: { rgb: '000000' } },
-                  bottom: { style: 'thick', color: { rgb: '000000' } },
-                  left: { style: 'thick', color: { rgb: '000000' } },
-                  right: { style: 'thick', color: { rgb: '000000' } }
+                  top: { style: 'medium', color: { rgb: '374151' } },
+                  bottom: { style: 'medium', color: { rgb: '374151' } },
+                  left: { style: 'thin', color: { rgb: '6B7280' } },
+                  right: { style: 'thin', color: { rgb: '6B7280' } }
                 }
               };
             }
             
-            // Style data cells
-            else if (C > 0 && cellValue && cellValue !== '') {
+            // Style attendance data cells
+            else if (C > 0 && R > 12 && cellValue && cellValue !== '' && !cellValue.includes('─')) {
+              // Determine cell type based on row and content
+              const rowBelowHeaders = R - 12; // Approximate row after headers
+              const rowType = (rowBelowHeaders - 1) % 7; // 0=employee info, 1=empty, 2=day names, 3=dates, 4=separator, 5-9=data rows
+              
+              let backgroundColor = 'FFFFFF';
+              let textColor = '1F2937';
+              let fontWeight = false;
+              
+              // Special formatting based on content
+              if (cellValue === 'P' || cellValue === 'LP') {
+                backgroundColor = 'D1FAE5'; // Green for present
+                textColor = '065F46';
+                fontWeight = true;
+              } else if (cellValue === 'A' || cellValue === 'AB') {
+                backgroundColor = 'FEE2E2'; // Red for absent
+                textColor = 'DC2626';
+                fontWeight = true;
+              } else if (cellValue === 'HD') {
+                backgroundColor = 'FEF3C7'; // Yellow for half day
+                textColor = '92400E';
+                fontWeight = true;
+              } else if (cellValue.includes(':')) {
+                // Time values
+                backgroundColor = 'F0F9FF';
+                textColor = '0C4A6E';
+              } else if (!isNaN(parseFloat(cellValue)) && parseFloat(cellValue) > 0) {
+                // Numeric values (overtime hours)
+                backgroundColor = 'FED7AA';
+                textColor = 'C2410C';
+                fontWeight = true;
+              }
+              
               worksheet[cellAddress].s = {
-                font: { sz: 10 },
+                font: { bold: fontWeight, sz: 9, color: { rgb: textColor } },
                 alignment: { horizontal: 'center', vertical: 'center' },
-                fill: { fgColor: { rgb: 'FFFFFF' } },
+                fill: { fgColor: { rgb: backgroundColor } },
                 border: {
-                  top: { style: 'thin', color: { rgb: '9CA3AF' } },
-                  bottom: { style: 'thin', color: { rgb: '9CA3AF' } },
-                  left: { style: 'thin', color: { rgb: '9CA3AF' } },
-                  right: { style: 'thin', color: { rgb: '9CA3AF' } }
+                  top: { style: 'thin', color: { rgb: 'D1D5DB' } },
+                  bottom: { style: 'thin', color: { rgb: 'D1D5DB' } },
+                  left: { style: 'thin', color: { rgb: 'D1D5DB' } },
+                  right: { style: 'thin', color: { rgb: 'D1D5DB' } }
                 }
               };
             }
