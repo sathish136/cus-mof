@@ -3661,22 +3661,10 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
           const totalOutMinutes = (outHour * 60) + outMin;
           const totalWorkingMinutes = totalOutMinutes - totalInMinutes;
           
-          // 15-minute rounding function
-          const roundToQuarterHour = (minutes: number): number => {
-            if (minutes >= 0 && minutes <= 14) return 0;
-            if (minutes >= 15 && minutes <= 29) return 15;
-            if (minutes >= 30 && minutes <= 44) return 30;
-            if (minutes >= 45 && minutes <= 59) return 45;
-            // For 60+ minutes, round down to nearest 15-minute increment
-            return Math.floor(minutes / 15) * 15;
-          };
-          
           if (isWeekend) {
-            // Weekend: all working minutes as offer minutes
-            // Apply 15-minute rounding to total working time
-            const roundedWorkingMinutes = roundToQuarterHour(totalWorkingMinutes);
-            if (roundedWorkingMinutes >= 15) {  // Must have at least 15 minutes to show
-              offerHours = roundedWorkingMinutes;
+            // Weekend: all working minutes as offer minutes (no rounding)
+            if (totalWorkingMinutes > 0) {
+              offerHours = totalWorkingMinutes;
             }
           } else {
             // Regular day: calculate based on group shift requirements
@@ -3684,13 +3672,10 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
             // Group B: 8:30 AM - 4:45 PM = 8 hrs 15 mins = 495 minutes
             const requiredMinutes = employee.employee_group === 'group_a' ? 465 : 495;
             
-            // Calculate excess minutes beyond required shift
+            // Calculate excess minutes beyond required shift (no rounding)
             const excessMinutes = Math.max(0, totalWorkingMinutes - requiredMinutes);
-            
-            // Apply 15-minute rounding to excess time
-            const roundedExcessMinutes = roundToQuarterHour(excessMinutes);
-            if (roundedExcessMinutes >= 15) {  // Must have at least 15 minutes to show
-              offerHours = roundedExcessMinutes;
+            if (excessMinutes > 0) {
+              offerHours = excessMinutes;
             }
           }
         }

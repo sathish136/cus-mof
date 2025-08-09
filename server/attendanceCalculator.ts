@@ -227,13 +227,8 @@ export class AttendanceCalculator {
       offerHours = Math.max(0, overtimeMs / (1000 * 60 * 60));
     }
 
-    // Round down to the nearest 15-minute block
-    // Convert hours to minutes, round down to nearest 15, then back to hours
-    const totalMinutes = Math.floor(offerHours * 60);
-    const roundedMinutes = Math.floor(totalMinutes / 15) * 15;
-    const roundedHours = roundedMinutes / 60;
-
-    return roundedHours;
+    // Return actual hours without rounding
+    return offerHours;
   }
 
   /**
