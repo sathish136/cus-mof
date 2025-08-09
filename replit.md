@@ -5,7 +5,7 @@ This project is a comprehensive HR Attendance Management System for the Ministry
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
-Excel Report Formatting: Ultra-compact A4 landscape design for monthly attendance reports. Requires ultra-minimal column widths (4.5 characters per day), very tight spacing, tiny fonts (6pt for headers, 5pt for data), light grid borders (F0F0F0 color), and maximum compression (65% scale) layout that fits all 31 days on a single A4 landscape page. User specifically requested "more small size" with "light borders for grid tables" and "most better look" for professional printing.
+Excel Report Formatting: Extreme compact A4 landscape design for monthly attendance reports. Requires minimal column widths (3.2 characters per day), ultra-tight spacing, extremely tiny fonts (4pt for headers, 3pt for data), nearly invisible grid borders (F8F8F8 color), and extreme compression (55% scale) layout. User specifically requested "still text is big need more small" and design matching reference image with ultra-compact appearance for professional printing.
 
 ## System Architecture
 

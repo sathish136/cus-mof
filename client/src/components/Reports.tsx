@@ -560,34 +560,34 @@ export default function Reports() {
         
         worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
         
-        // Ultra-compact column widths for maximum A4 landscape fit
+        // Extreme compact column widths matching the reference image
         const columnWidths = [
-          { wch: 8 }, // Label column - very compact
+          { wch: 7 }, // Label column - extremely compact
         ];
         
-        // Extra small day columns to fit all 31 days 
+        // Tiny day columns to fit all 31 days exactly like the image
         days.forEach(() => {
-          columnWidths.push({ wch: 4.5 }); // Extra compact day columns
+          columnWidths.push({ wch: 3.2 }); // Tiny compact day columns
         });
         
         worksheet['!cols'] = columnWidths;
 
-        // Maximum compression for A4 landscape printing
+        // Extreme compression for A4 landscape printing
         worksheet['!pageSetup'] = {
           paperSize: 9, // A4
           orientation: 'landscape',
-          scale: 65, // Much smaller scale for maximum fit
+          scale: 55, // Much smaller scale for extreme fit
           fitToWidth: 1,
           fitToHeight: 0, 
           horizontalDpi: 300,
           verticalDpi: 300,
           margins: {
-            left: 0.2,
-            right: 0.2,
-            top: 0.3,
-            bottom: 0.3,
-            header: 0.1,
-            footer: 0.1
+            left: 0.15,
+            right: 0.15,
+            top: 0.2,
+            bottom: 0.2,
+            header: 0.05,
+            footer: 0.05
           }
         };
 
@@ -609,121 +609,110 @@ export default function Reports() {
             
             const cellValue = worksheet[cellAddress].v?.toString() || '';
             
-            // Header styling - very small and clean
+            // Extremely small header styling to match reference image
             if (cellValue.includes('MINISTRY OF FINANCE') || cellValue.includes('MONTHLY ATTENDANCE SHEET')) {
               worksheet[cellAddress].s = {
-                font: { bold: true, sz: 10, color: { rgb: '000000' } },
+                font: { bold: true, sz: 8, color: { rgb: '000000' } },
                 alignment: { horizontal: 'center', vertical: 'center' }
               };
             }
             
-            // Sub-header styling - very small
+            // Tiny sub-header styling
             else if (cellValue.includes('Human Resources Department') || cellValue.includes('Period:') || 
                      cellValue.includes('Report Month:') || cellValue.includes('Generated:')) {
               worksheet[cellAddress].s = {
-                font: { bold: false, sz: 8, color: { rgb: '000000' } },
+                font: { bold: false, sz: 6, color: { rgb: '000000' } },
                 alignment: { horizontal: 'center', vertical: 'center' }
               };
             }
             
-            // Employee info row - minimal background with very light borders
+            // Employee info row - extremely minimal
             else if (cellValue.includes('EMPLOYEE:')) {
               worksheet[cellAddress].s = {
-                font: { bold: true, sz: 8, color: { rgb: '000000' } },
+                font: { bold: true, sz: 6, color: { rgb: '000000' } },
                 alignment: { horizontal: 'left', vertical: 'center' },
                 fill: { fgColor: { rgb: 'FAFAFA' } },
                 border: {
-                  top: { style: 'thin', color: { rgb: 'D0D0D0' } },
-                  bottom: { style: 'thin', color: { rgb: 'D0D0D0' } },
-                  left: { style: 'thin', color: { rgb: 'D0D0D0' } },
-                  right: { style: 'thin', color: { rgb: 'D0D0D0' } }
+                  top: { style: 'thin', color: { rgb: 'E8E8E8' } },
+                  bottom: { style: 'thin', color: { rgb: 'E8E8E8' } },
+                  left: { style: 'thin', color: { rgb: 'E8E8E8' } },
+                  right: { style: 'thin', color: { rgb: 'E8E8E8' } }
                 }
               };
             }
             
-            // Day headers - very compact with light borders
+            // Day headers - tiny fonts with super light borders
             else if (['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].includes(cellValue)) {
               const isWeekend = ['SAT', 'SUN'].includes(cellValue);
               worksheet[cellAddress].s = {
-                font: { bold: true, sz: 6, color: { rgb: '000000' } },
+                font: { bold: true, sz: 4, color: { rgb: '000000' } },
                 alignment: { horizontal: 'center', vertical: 'center' },
-                fill: { fgColor: { rgb: isWeekend ? 'FFF5F5' : 'F8F8F8' } },
+                fill: { fgColor: { rgb: isWeekend ? 'FFFAFA' : 'FAFAFA' } },
                 border: {
-                  top: { style: 'thin', color: { rgb: 'E0E0E0' } },
-                  bottom: { style: 'thin', color: { rgb: 'E0E0E0' } },
-                  left: { style: 'thin', color: { rgb: 'E0E0E0' } },
-                  right: { style: 'thin', color: { rgb: 'E0E0E0' } }
+                  top: { style: 'thin', color: { rgb: 'F0F0F0' } },
+                  bottom: { style: 'thin', color: { rgb: 'F0F0F0' } },
+                  left: { style: 'thin', color: { rgb: 'F0F0F0' } },
+                  right: { style: 'thin', color: { rgb: 'F0F0F0' } }
                 }
               };
             }
             
-            // Date numbers - very compact with light borders
+            // Date numbers - tiny fonts with super light borders
             else if (/^\d{2}$/.test(cellValue)) {
               const dayNum = parseInt(cellValue);
               const currentDate = new Date(start.getFullYear(), start.getMonth(), dayNum);
               const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
               
               worksheet[cellAddress].s = {
-                font: { bold: false, sz: 6, color: { rgb: '000000' } },
+                font: { bold: false, sz: 4, color: { rgb: '000000' } },
                 alignment: { horizontal: 'center', vertical: 'center' },
-                fill: { fgColor: { rgb: isWeekend ? 'FFF5F5' : 'FCFCFC' } },
-                border: {
-                  top: { style: 'thin', color: { rgb: 'E0E0E0' } },
-                  bottom: { style: 'thin', color: { rgb: 'E0E0E0' } },
-                  left: { style: 'thin', color: { rgb: 'E0E0E0' } },
-                  right: { style: 'thin', color: { rgb: 'E0E0E0' } }
-                }
-              };
-            }
-            
-            // Row labels - very minimal colors with light borders
-            else if (['IN TIME', 'OUT TIME', 'WORKED HRS', 'STATUS', 'OVERTIME'].includes(cellValue)) {
-              const rowColors = {
-                'IN TIME': 'FFFEF7',      // Very light yellow
-                'OUT TIME': 'F7FFF7',     // Very light green
-                'WORKED HRS': 'F7F9FF',   // Very light blue
-                'STATUS': 'FAFAFA',       // Very light gray
-                'OVERTIME': 'FFF9F0'      // Very light orange
-              };
-              
-              worksheet[cellAddress].s = {
-                font: { bold: true, sz: 6, color: { rgb: '000000' } },
-                alignment: { horizontal: 'center', vertical: 'center' },
-                fill: { fgColor: { rgb: rowColors[cellValue as keyof typeof rowColors] } },
-                border: {
-                  top: { style: 'thin', color: { rgb: 'E0E0E0' } },
-                  bottom: { style: 'thin', color: { rgb: 'E0E0E0' } },
-                  left: { style: 'thin', color: { rgb: 'C0C0C0' } },
-                  right: { style: 'thin', color: { rgb: 'E0E0E0' } }
-                }
-              };
-            }
-            
-            // Data cells - very compact with ultra-light borders
-            else if (C > 0 && R > 12 && cellValue && cellValue !== '') {
-              let backgroundColor = 'FFFFFF';
-              let textColor = '000000';
-              
-              // Very subtle status-based coloring
-              if (cellValue === 'P') {
-                backgroundColor = 'FAFFFA'; // Ultra-light green
-              } else if (cellValue === 'A') {
-                backgroundColor = 'FFFAFA'; // Ultra-light red
-              } else if (cellValue === 'HD') {
-                backgroundColor = 'FFFCFA'; // Ultra-light orange
-              } else if (cellValue === 'LP') {
-                backgroundColor = 'FEFEFA'; // Ultra-light beige
-              }
-              
-              worksheet[cellAddress].s = {
-                font: { bold: false, sz: 5, color: { rgb: textColor } },
-                alignment: { horizontal: 'center', vertical: 'center' },
-                fill: { fgColor: { rgb: backgroundColor } },
+                fill: { fgColor: { rgb: isWeekend ? 'FFFAFA' : 'FFFFFF' } },
                 border: {
                   top: { style: 'thin', color: { rgb: 'F0F0F0' } },
                   bottom: { style: 'thin', color: { rgb: 'F0F0F0' } },
                   left: { style: 'thin', color: { rgb: 'F0F0F0' } },
                   right: { style: 'thin', color: { rgb: 'F0F0F0' } }
+                }
+              };
+            }
+            
+            // Row labels - tiny fonts with almost invisible colors
+            else if (['IN TIME', 'OUT TIME', 'WORKED HRS', 'STATUS', 'OVERTIME'].includes(cellValue)) {
+              worksheet[cellAddress].s = {
+                font: { bold: true, sz: 4, color: { rgb: '000000' } },
+                alignment: { horizontal: 'center', vertical: 'center' },
+                fill: { fgColor: { rgb: 'FFFFFF' } },
+                border: {
+                  top: { style: 'thin', color: { rgb: 'F5F5F5' } },
+                  bottom: { style: 'thin', color: { rgb: 'F5F5F5' } },
+                  left: { style: 'thin', color: { rgb: 'E8E8E8' } },
+                  right: { style: 'thin', color: { rgb: 'F5F5F5' } }
+                }
+              };
+            }
+            
+            // Data cells - extremely tiny fonts with barely visible borders
+            else if (C > 0 && R > 12 && cellValue && cellValue !== '') {
+              let backgroundColor = 'FFFFFF';
+              
+              // Extremely subtle status-based coloring (almost invisible)
+              if (cellValue === 'P') {
+                backgroundColor = 'FEFFFE'; // Barely visible green
+              } else if (cellValue === 'A') {
+                backgroundColor = 'FFFEFE'; // Barely visible red
+              } else if (cellValue === 'HD') {
+                backgroundColor = 'FFFFFE'; // Barely visible orange
+              }
+              
+              worksheet[cellAddress].s = {
+                font: { bold: false, sz: 3, color: { rgb: '000000' } },
+                alignment: { horizontal: 'center', vertical: 'center' },
+                fill: { fgColor: { rgb: backgroundColor } },
+                border: {
+                  top: { style: 'thin', color: { rgb: 'F8F8F8' } },
+                  bottom: { style: 'thin', color: { rgb: 'F8F8F8' } },
+                  left: { style: 'thin', color: { rgb: 'F8F8F8' } },
+                  right: { style: 'thin', color: { rgb: 'F8F8F8' } }
                 }
               };
             }
