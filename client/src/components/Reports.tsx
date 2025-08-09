@@ -1303,84 +1303,85 @@ export default function Reports() {
         <head>
           <title>${filename}</title>
           <style>
-            @page { size: A4; margin: 0.4in 0.3in; }
+            @page { size: A4; margin: 0.5in 0.4in; }
             body { 
               font-family: Arial, sans-serif; 
-              font-size: 10px; 
-              line-height: 1.2; 
+              font-size: 11px; 
+              line-height: 1.3; 
               margin: 0; 
-              padding: 10px; 
+              padding: 12px; 
               color: black;
             }
             .treasury-header {
               text-align: center;
               border: 2px solid black;
-              margin-bottom: 10px;
+              margin-bottom: 12px;
             }
             .header-section {
-              padding: 6px;
+              padding: 8px;
               border-bottom: 1px solid black;
             }
             .employee-info {
-              padding: 8px;
+              padding: 10px;
               border-bottom: 1px solid black;
             }
             .attendance-table {
-              padding: 8px;
+              padding: 10px;
             }
             table {
               width: 100%;
               border-collapse: collapse;
-              margin-top: 6px;
+              margin-top: 8px;
             }
             th, td {
               border: 1px solid black;
-              padding: 3px 4px;
+              padding: 5px 6px;
               text-align: center;
-              font-size: 9px;
+              font-size: 10px;
+              line-height: 1.2;
             }
             th {
               background-color: #e9ecef;
               font-weight: bold;
             }
             .summary-section {
-              margin-top: 10px;
-              padding: 8px;
+              margin-top: 12px;
+              padding: 10px;
               border: 1px solid black;
               background-color: #f8f9fa;
               float: right;
-              width: 260px;
-              font-size: 9px;
+              width: 280px;
+              font-size: 10px;
             }
             .signature-section {
-              margin-top: 18px;
+              margin-top: 20px;
               display: flex;
               justify-content: space-between;
             }
             .signature-box {
               text-align: center;
-              width: 220px;
+              width: 240px;
             }
             .signature-line {
               border-top: 1px solid black;
-              padding-top: 4px;
-              margin-top: 25px;
-              font-size: 9px;
+              padding-top: 5px;
+              margin-top: 30px;
+              font-size: 10px;
             }
             @media print {
-              body { margin: 0; padding: 10px; font-size: 9px; }
-              @page { margin: 0.3in 0.25in; }
-              table { font-size: 8px; }
-              th, td { padding: 2px 3px; }
+              body { margin: 0; padding: 12px; font-size: 10px; }
+              @page { margin: 0.4in 0.35in; }
+              table { font-size: 9px; }
+              th, td { padding: 4px 5px; }
             }
           </style>
         </head>
         <body>
           <div class="treasury-header">
             <div class="header-section">
-              <div style="font-size: 9px; margin-bottom: 3px;">gADG</div>
-              <div style="font-weight: bold; font-size: 11px;">Project Management and Monitoring</div>
-              <div style="font-size: 12px; font-weight: bold; margin-top: 6px; text-decoration: underline;">
+              <div style="font-size: 10px; margin-bottom: 4px;">gADG</div>
+              <div style="font-weight: bold; font-size: 12px;">Project Management and Monitoring</div>
+              <div style="font-size: 14px; font-weight: bold; margin-top: 8px; text-decoration: underline;">
                 Applying for 1/4 allowance of Treasury Officers
               </div>
             </div>
@@ -1388,26 +1389,26 @@ export default function Reports() {
             <div class="employee-info">
               <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div style="text-align: left;">
-                  <div style="margin-bottom: 3px; font-size: 10px;">
+                  <div style="margin-bottom: 4px; font-size: 11px;">
                     <strong>Emp Id :</strong> ${data.employee.employeeId}
                   </div>
-                  <div style="margin-bottom: 3px; font-size: 10px;">
+                  <div style="margin-bottom: 4px; font-size: 11px;">
                     <strong>Name :</strong> ${data.employee.fullName}
                   </div>
-                  <div style="margin-bottom: 6px; font-size: 10px;">
+                  <div style="margin-bottom: 8px; font-size: 11px;">
                     <strong>Period :</strong> ${formatDate(data.period.startDate)} to ${formatDate(data.period.endDate)}
                   </div>
                 </div>
-                <div style="border: 1px solid black; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                  <strong style="font-size: 12px;">1/4</strong>
+                <div style="border: 1px solid black; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                  <strong style="font-size: 14px;">1/4</strong>
                 </div>
               </div>
 
-              <div style="text-align: left; font-size: 9px; margin-bottom: 5px; line-height: 1.3;">
+              <div style="text-align: left; font-size: 10px; margin-bottom: 6px; line-height: 1.4;">
                 I, _________________ who serve as a _____________ at the Department of _________________, 
                 Object Management and Monitoring have completed an additional time period of _____ hours in the month of ${data.period.startDate ? new Date(data.period.startDate).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : ''}.
               </div>
-              <div style="text-align: left; font-size: 9px; line-height: 1.3;">
+              <div style="text-align: left; font-size: 10px; line-height: 1.4;">
                 Therefore, I kindly request you to grant me Rs. _______ as the 1/4 allowance of Treasury Officers according to the proposal.
               </div>
             </div>
