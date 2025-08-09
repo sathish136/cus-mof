@@ -1,6 +1,11 @@
 # Python Attendance Sync Tool Setup
 
-This Python tool continuously syncs attendance data from ZK biometric devices to your database using the HR system API.
+This Python tool continuously syncs attendance data from ZK biometric devices to your database using the HR system API. Now includes Replit API integration for enhanced deployment and management.
+
+## Tool Versions
+
+1. **python_sync_tool.py** - Basic version for any environment
+2. **replit_sync_tool.py** - Enhanced version with Replit API integration (recommended)
 
 ## Installation
 
@@ -25,40 +30,46 @@ This Python tool continuously syncs attendance data from ZK biometric devices to
 
 ### Basic Commands
 
-1. **Test API connection**
-   ```bash
-   python3 python_sync_tool.py test
-   ```
+**For Basic Tool:**
+```bash
+python3 python_sync_tool.py test     # Test connection
+python3 python_sync_tool.py single   # Run single sync  
+python3 python_sync_tool.py          # Run continuous sync
+python3 python_sync_tool.py status   # Check status
+```
 
-2. **Run single sync**
-   ```bash
-   python3 python_sync_tool.py single
-   ```
-
-3. **Run continuous sync** (recommended)
-   ```bash
-   python3 python_sync_tool.py
-   ```
-
-4. **Check status**
-   ```bash
-   python3 python_sync_tool.py status
-   ```
+**For Replit-Enhanced Tool:**
+```bash
+python3 replit_sync_tool.py test     # Test connection
+python3 replit_sync_tool.py single   # Run single sync
+python3 replit_sync_tool.py          # Run continuous sync
+python3 replit_sync_tool.py status   # Check status
+python3 replit_sync_tool.py info     # Show Replit deployment info
+```
 
 ### Configuration
 
-Set environment variables to configure the tool:
-
+**Basic Tool Configuration:**
 ```bash
-# Set API URL (default: http://localhost:3000)
 export API_URL="http://your-server:3000"
-
-# Set sync interval in seconds (default: 30)
 export SYNC_INTERVAL="60"
-
-# Then run the tool
 python3 python_sync_tool.py
 ```
+
+**Replit-Enhanced Tool Configuration:**
+```bash
+# For Replit-hosted apps (auto-detected)
+export REPLIT_APP_URL="https://your-app.your-username.repl.co"
+export SYNC_INTERVAL="30"
+
+# Optional: Replit API token for enhanced features
+export REPLIT_TOKEN="your_replit_token"
+
+# Run the enhanced tool
+python3 replit_sync_tool.py
+```
+
+**Auto-Detection:** The Replit tool automatically detects if it's running inside Replit and configures the URL using environment variables like `REPL_SLUG` and `REPL_OWNER`.
 
 ### Running as Background Service
 
