@@ -196,7 +196,7 @@ export class AttendanceCalculator {
    * Calculate 1/4 Offer (overtime calculation for quarter system)
    * Category A: Work hours calculated from 4:15 PM (16:15)
    * Category B: Work hours calculated from 4:45 PM (16:45)
-   * OT is rounded down to the nearest 15-minute block (1 hr, 1 hr 15 mins, 1 hr 30 mins, 1 hr 45 mins, etc.)
+   * Shows exact time without rounding (e.g., 22 minutes OT shows as 22 minutes)
    */
   calculateOfferHours(
     checkIn: Date,
