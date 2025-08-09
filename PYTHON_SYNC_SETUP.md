@@ -108,12 +108,15 @@ sudo systemctl status attendance-sync
 ## Features
 
 - ✅ **Continuous sync**: Runs every 30 seconds (configurable)
+- ✅ **Dynamic device detection**: Auto-discovers new devices added to web app
+- ✅ **Attendance-only sync**: Syncs attendance data only (no employee data)
 - ✅ **Device-specific sync**: Syncs each device individually
 - ✅ **Error handling**: Retries and logs errors
 - ✅ **Health monitoring**: Checks API and database status
 - ✅ **Logging**: Saves logs to `attendance_sync.log`
-- ✅ **Status reporting**: Shows sync statistics
+- ✅ **Status reporting**: Shows sync statistics with device status
 - ✅ **Manual control**: Run single sync or continuous
+- ✅ **No restart required**: Automatically detects when you add/remove devices in web app
 
 ## Monitoring
 
@@ -133,6 +136,20 @@ grep "Sync cycle completed" attendance_sync.log | tail -10
 - **Background mode**: `pkill -f python_sync_tool.py`
 - **Systemd service**: `sudo systemctl stop attendance-sync`
 
+## Dynamic Device Detection
+
+The Python tool automatically detects when you add or remove devices in the web app:
+
+- **Adding devices**: When you add a new biometric device in the web app, the Python tool will automatically detect it within 5 sync cycles (about 2.5 minutes) and start syncing it
+- **Removing devices**: When you remove a device from the web app, the tool will stop trying to sync it
+- **No restart needed**: The tool continuously checks for device changes, so you never need to restart it
+
+Example log output when adding a device:
+```
+🔍 Detected 1 new devices: NewDevice01
+📱 New device added: NewDevice01
+```
+
 ## Troubleshooting
 
 1. **API Connection Failed**
@@ -148,6 +165,11 @@ grep "Sync cycle completed" attendance_sync.log | tail -10
    - Tool filters out invalid timestamps (year 2000)
    - Check device clock settings
    - Monitor logs for processing statistics
+
+4. **New Device Not Detected**
+   - Wait up to 5 sync cycles (about 2.5 minutes)
+   - Check device is properly configured in web app
+   - Verify device has a valid deviceId
 
 ## Example Output
 
