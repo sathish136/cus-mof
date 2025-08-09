@@ -460,7 +460,7 @@ export default function Settings() {
 
   const syncDeviceMutation = useMutation({
     mutationFn: async (deviceId: string) => {
-      const response = await fetch(`/api/zk-devices/${deviceId}/sync`, { method: 'POST' });
+      const response = await fetch(`/api/auto-sync/device/${deviceId}`, { method: 'POST' });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Failed to sync device' }));
         throw new Error(errorData.message || 'Failed to sync device');

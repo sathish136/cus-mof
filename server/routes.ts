@@ -2436,6 +2436,134 @@ router.post("/api/auto-sync/manual", async (req, res) => {
   }
 });
 
+// Sync specific device only
+router.post("/api/auto-sync/device/:deviceId", async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    console.log(`Starting manual sync for device: ${deviceId}`);
+    
+    // Get specific device
+    const device = await db.select().from(biometricDevices).where(eq(biometricDevices.deviceId, deviceId)).limit(1);
+    if (device.length === 0) {
+      return res.status(404).json({ success: false, message: `Device ${deviceId} not found` });
+    }
+    
+    const targetDevice = device[0];
+    
+    // Connect to device if not connected
+    if (!zkDeviceManager.isDeviceConnected(targetDevice.deviceId)) {
+      const connected = await zkDeviceManager.connectDevice(targetDevice.deviceId, {
+        ip: targetDevice.ip,
+        port: targetDevice.port,
+        timeout: 5000,
+        inport: 1,
+      });
+      if (!connected) {
+        return res.status(500).json({ success: false, message: `Could not connect to device ${deviceId}` });
+      }
+    }
+
+    // Sync only this device
+    const logs = await zkDeviceManager.syncAttendanceData(targetDevice.deviceId);
+    let processedRecords = 0;
+    
+    if (logs && logs.length > 0) {
+      console.log(`Processing ${logs.length} records from device ${deviceId}`);
+      
+      // Process attendance logs into database records (same logic as auto-sync)
+      const attendanceMap = new Map();
+      const allEmployees = await db.select().from(employees);
+      
+      // Create lookup function for employee IDs
+      const findEmployeeIdLocal = (uid: string): string | null => {
+        const trimmedUid = String(uid).trim();
+        
+        // Try exact match with employee_id first
+        const byEmpId = allEmployees.find(emp => emp.employeeId === trimmedUid);
+        if (byEmpId) return byEmpId.id;
+        
+        // Try exact match with biometric_device_id if it exists
+        const byBiometric = allEmployees.find(emp => emp.biometricDeviceId && emp.biometricDeviceId === trimmedUid);
+        if (byBiometric) return byBiometric.id;
+        
+        // Try exact match with id field as fallback
+        const byId = allEmployees.find(emp => emp.id === trimmedUid);
+        if (byId) return byId.id;
+        
+        return null;
+      };
+
+      console.log(`Processing ${logs.length} attendance logs for device ${deviceId}`);
+      console.log(`Found ${allEmployees.length} employees in database`);
+      
+      let foundCount = 0;
+      let notFoundCount = 0;
+      const notFoundUIDs = new Set();
+      
+      for (const log of logs) {
+        const uid = String(log.uid).trim();
+        const employeeDbId = findEmployeeIdLocal(uid);
+        if (!employeeDbId) {
+          notFoundCount++;
+          notFoundUIDs.add(uid);
+          if (notFoundUIDs.size <= 10) {
+            console.warn(`No employee found for UID: ${uid}`);
+          }
+          continue;
+        }
+        foundCount++;
+
+        const logDate = new Date(log.timestamp);
+        const dateKey = logDate.toISOString().split('T')[0];
+        const mapKey = `${employeeDbId}-${dateKey}`;
+        
+        if (!attendanceMap.has(mapKey)) {
+          attendanceMap.set(mapKey, {
+            employeeId: employeeDbId,
+            date: dateKey,
+            checkIn: logDate,
+            checkOut: logDate,
+            status: 'present'
+          });
+        } else {
+          const existing = attendanceMap.get(mapKey);
+          if (logDate < existing!.checkIn) {
+            existing!.checkIn = logDate;
+          }
+          if (logDate > existing!.checkOut) {
+            existing!.checkOut = logDate;
+          }
+        }
+      }
+
+      console.log(`Sync stats for ${deviceId}: Found ${foundCount} employees, ${notFoundCount} UIDs not found`);
+      if (notFoundUIDs.size > 10) {
+        console.log(`Total unique missing UIDs: ${notFoundUIDs.size} (only first 10 logged)`);
+      }
+
+      // Insert unique attendance records
+      const attendanceRecordsToInsert = Array.from(attendanceMap.values());
+      if (attendanceRecordsToInsert.length > 0) {
+        await db.insert(attendance).values(attendanceRecordsToInsert).onConflictDoNothing();
+        processedRecords = attendanceRecordsToInsert.length;
+      }
+
+      console.log(`Manual sync for ${deviceId}: ${logs.length} raw records retrieved, ${processedRecords} attendance records saved to database`);
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Device ${deviceId} sync completed`, 
+      rawRecords: logs?.length || 0,
+      processedRecords: processedRecords,
+      deviceId: deviceId
+    });
+  } catch (error) {
+    console.error(`Manual sync failed for device ${req.params.deviceId}:`, error);
+    res.status(500).json({ success: false, message: `Manual sync failed for device ${req.params.deviceId}` });
+  }
+});
+
 router.post("/api/auto-sync/full-sync", async (req, res) => {
   try {
     console.log('Starting FULL SYNC of all devices - retrieving complete historical attendance data...');
