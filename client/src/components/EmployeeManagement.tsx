@@ -746,8 +746,8 @@ export default function EmployeeManagement() {
                 // Download template with actual employee data
                 let csvContent = "Employee ID,Full Name\n";
                 if (employees.length > 0) {
-                  // Use actual employee data
-                  employees.slice(0, 10).forEach(emp => {
+                  // Use all employee data
+                  employees.forEach(emp => {
                     csvContent += `${emp.employeeId},${emp.fullName}\n`;
                   });
                 } else {
