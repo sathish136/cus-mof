@@ -1514,13 +1514,13 @@ export default function Settings() {
                   <Button variant="outline" onClick={() => setIsViewUsersDialogOpen(false)}>Cancel</Button>
                   <Button 
                     onClick={() => {
-                      const validUsers = selectedUsers.filter(u => u.userId && u.userId.trim() !== '' && u.name && u.name.trim() !== '');
+                      const validUsers = selectedUsers.filter(u => u.userId && u.userId.trim() !== '');
 
                       if (validUsers.length < selectedUsers.length) {
                         const skippedCount = selectedUsers.length - validUsers.length;
                         toast({
                           title: "Skipped Invalid Users",
-                          description: `${skippedCount} user(s) were skipped due to a missing User ID or Name.`,
+                          description: `${skippedCount} user(s) were skipped due to a missing User ID.`,
                           variant: "default",
                         });
                       }
@@ -1536,7 +1536,7 @@ export default function Settings() {
 
                       const usersToImport = validUsers.map(u => ({ 
                         employeeId: u.userId, 
-                        fullName: u.name,
+                        fullName: u.name || `User ${u.userId}`,
                         email: `${u.userId}@example.com`,
                         phone: '0000000000',
                         position: 'Default Position',
