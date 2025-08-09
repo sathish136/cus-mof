@@ -52,19 +52,27 @@ let autoSyncSettings = {
 let autoSyncInterval: NodeJS.Timeout | null = null;
 
 // Helper function to find employee ID by biometric UID
-function findEmployeeId(uid: string): string | null {
-  // Try exact match with biometric_device_id first
-  const employeeByBiometric = db.query.employees.findFirst({
-    where: eq(employees.biometricDeviceId, uid),
-  });
-  
-  // Try exact match with employee_id
-  const employeeByEmpId = db.query.employees.findFirst({
-    where: eq(employees.employeeId, uid),
-  });
-  
-  // Return first match or null
-  return employeeByBiometric?.id || employeeByEmpId?.id || null;
+async function findEmployeeId(uid: string): Promise<string | null> {
+  try {
+    // Try exact match with biometric_device_id first
+    const employeeByBiometric = await db.query.employees.findFirst({
+      where: eq(employees.biometricDeviceId, uid),
+    });
+    
+    if (employeeByBiometric) {
+      return employeeByBiometric.id;
+    }
+    
+    // Try exact match with employee_id
+    const employeeByEmpId = await db.query.employees.findFirst({
+      where: eq(employees.employeeId, uid),
+    });
+    
+    return employeeByEmpId?.id || null;
+  } catch (error) {
+    console.error('Error finding employee ID:', error);
+    return null;
+  }
 }
 
 // Auto-sync function to sync all devices
