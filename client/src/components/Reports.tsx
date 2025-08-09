@@ -1002,25 +1002,25 @@ export default function Reports() {
         <style>
           @page {
             size: A4 portrait;
-            margin: ${reportType === 'individual-monthly' ? '10mm 8mm' : '0.5in'};
+            margin: ${reportType === 'individual-monthly' ? '10mm 8mm' : reportType === 'individual-offer' ? '8mm 6mm' : '0.5in'};
           }
           
           /* Enable layout options in print dialog */
           @media print {
             @page {
-              size: A4 ${reportType === 'individual-monthly' ? 'portrait' : 'auto'};
-              margin: ${reportType === 'individual-monthly' ? '10mm 8mm' : '0.5in'};
+              size: A4 ${reportType === 'individual-monthly' || reportType === 'individual-offer' ? 'portrait' : 'auto'};
+              margin: ${reportType === 'individual-monthly' ? '10mm 8mm' : reportType === 'individual-offer' ? '8mm 6mm' : '0.5in'};
             }
             
             /* Portrait layout support */
             @page :left {
-              margin-left: ${reportType === 'individual-monthly' ? '10mm' : '0.6in'};
-              margin-right: ${reportType === 'individual-monthly' ? '8mm' : '0.4in'};
+              margin-left: ${reportType === 'individual-monthly' ? '10mm' : reportType === 'individual-offer' ? '8mm' : '0.6in'};
+              margin-right: ${reportType === 'individual-monthly' ? '8mm' : reportType === 'individual-offer' ? '6mm' : '0.4in'};
             }
             
             @page :right {
-              margin-left: ${reportType === 'individual-monthly' ? '8mm' : '0.4in'};
-              margin-right: ${reportType === 'individual-monthly' ? '10mm' : '0.6in'};
+              margin-left: ${reportType === 'individual-monthly' ? '8mm' : reportType === 'individual-offer' ? '6mm' : '0.4in'};
+              margin-right: ${reportType === 'individual-monthly' ? '10mm' : reportType === 'individual-offer' ? '8mm' : '0.6in'};
             }
           }
           
@@ -1058,9 +1058,9 @@ export default function Reports() {
           body { 
             font-family: Arial, sans-serif; 
             margin: 0; 
-            padding: 20px;
-            font-size: 11px;
-            line-height: 1.4;
+            padding: ${reportType === 'individual-offer' ? '12px' : '20px'};
+            font-size: ${reportType === 'individual-offer' ? '9px' : '11px'};
+            line-height: ${reportType === 'individual-offer' ? '1.2' : '1.4'};
             width: 100%;
             max-width: 100%;
             color: black !important;
@@ -1072,21 +1072,21 @@ export default function Reports() {
           }
           .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: ${reportType === 'individual-offer' ? '15px' : '30px'};
             border-bottom: 3px solid #1e40af;
-            padding-bottom: 20px;
+            padding-bottom: ${reportType === 'individual-offer' ? '10px' : '20px'};
           }
           .company-name {
-            font-size: 24px;
+            font-size: ${reportType === 'individual-offer' ? '18px' : '24px'};
             font-weight: bold;
             color: #1e40af;
-            margin-bottom: 5px;
+            margin-bottom: ${reportType === 'individual-offer' ? '3px' : '5px'};
             text-transform: uppercase;
           }
           .department {
-            font-size: 16px;
+            font-size: ${reportType === 'individual-offer' ? '12px' : '16px'};
             color: #374151;
-            margin-bottom: 8px;
+            margin-bottom: ${reportType === 'individual-offer' ? '4px' : '8px'};
             font-weight: 600;
           }
           .system-title {
@@ -1096,16 +1096,16 @@ export default function Reports() {
           }
           .report-details {
             background-color: #f8fafc;
-            padding: 20px;
+            padding: ${reportType === 'individual-offer' ? '12px' : '20px'};
             border-radius: 8px;
-            margin-bottom: 25px;
+            margin-bottom: ${reportType === 'individual-offer' ? '15px' : '25px'};
             border: 2px solid #e2e8f0;
           }
           .report-title {
-            font-size: 18px;
+            font-size: ${reportType === 'individual-offer' ? '14px' : '18px'};
             font-weight: bold;
             color: #1f2937;
-            margin-bottom: 15px;
+            margin-bottom: ${reportType === 'individual-offer' ? '8px' : '15px'};
             text-align: center;
             text-transform: uppercase;
           }
@@ -1129,12 +1129,12 @@ export default function Reports() {
           table { 
             width: 100%; 
             border-collapse: collapse; 
-            margin-top: 20px;
-            font-size: 11px;
+            margin-top: ${reportType === 'individual-offer' ? '10px' : '20px'};
+            font-size: ${reportType === 'individual-offer' ? '8px' : '11px'};
           }
           th, td { 
             border: 1px solid #d1d5db; 
-            padding: 8px; 
+            padding: ${reportType === 'individual-offer' ? '4px 3px' : '8px'}; 
             text-align: left; 
             vertical-align: top;
           }
@@ -1169,9 +1169,9 @@ export default function Reports() {
           }
           .summary-stats {
             background-color: #fefce8;
-            padding: 15px;
+            padding: ${reportType === 'individual-offer' ? '8px' : '15px'};
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: ${reportType === 'individual-offer' ? '10px' : '20px'};
             border: 1px solid #fbbf24;
           }
           .stats-row {
@@ -1203,13 +1203,13 @@ export default function Reports() {
               margin-top: 15px;
             }
             table { 
-              font-size: 9px;
+              font-size: ${reportType === 'individual-offer' ? '7px' : '9px'};
               page-break-inside: auto;
               width: 100%;
             }
             th, td { 
-              padding: 4px 3px;
-              font-size: 9px;
+              padding: ${reportType === 'individual-offer' ? '2px 1px' : '4px 3px'};
+              font-size: ${reportType === 'individual-offer' ? '7px' : '9px'};
               border: 1px solid #000 !important;
             }
             th {
