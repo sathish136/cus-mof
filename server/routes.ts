@@ -3661,13 +3661,13 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
           const totalOutMinutes = (outHour * 60) + outMin;
           const totalWorkingMinutes = totalOutMinutes - totalInMinutes;
           
-          console.log(`Calculating for ${currentDate.toISOString().split('T')[0]}: ${inTime} to ${outTime} = ${totalWorkingMinutes} minutes`);
+
           
           if (isWeekend) {
             // Weekend: all working minutes as offer minutes (no rounding)
             if (totalWorkingMinutes > 0) {
               offerHours = totalWorkingMinutes;
-              console.log(`Weekend: ${totalWorkingMinutes} minutes offer hours`);
+
             }
           } else {
             // Regular day: calculate based on group shift requirements
@@ -3679,7 +3679,7 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
             const excessMinutes = Math.max(0, totalWorkingMinutes - requiredMinutes);
             if (excessMinutes > 0) {
               offerHours = excessMinutes;
-              console.log(`Regular day: ${excessMinutes} excess minutes = ${offerHours} offer hours`);
+
             }
           }
         }
@@ -3712,7 +3712,7 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
           // Show as minutes for values under 60
           formattedOfferHours = `${offerHours}mins`;
         }
-        console.log(`Formatted offer hours: ${formattedOfferHours}`);
+
       }
 
       dailyData.push({
