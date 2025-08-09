@@ -3696,11 +3696,22 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
 
       totalOfferHours += offerHours;
 
-      // Show exact minutes without any rounding or hour conversion
+      // Show exact time in hour format when 60+ minutes
       let formattedOfferHours = '0.00';
       if (offerHours > 0) {
-        // Always show as minutes for exact time tracking
-        formattedOfferHours = `${offerHours}mins`;
+        if (offerHours >= 60) {
+          // Convert to hour:minute format (e.g., "1hr 32mins" for 92 minutes)
+          const hours = Math.floor(offerHours / 60);
+          const remainingMinutes = offerHours % 60;
+          if (remainingMinutes > 0) {
+            formattedOfferHours = `${hours}hr ${remainingMinutes}mins`;
+          } else {
+            formattedOfferHours = `${hours}hr`;
+          }
+        } else {
+          // Show as minutes for values under 60
+          formattedOfferHours = `${offerHours}mins`;
+        }
         console.log(`Formatted offer hours: ${formattedOfferHours}`);
       }
 
