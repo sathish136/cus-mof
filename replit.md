@@ -5,7 +5,7 @@ This project is a comprehensive HR Attendance Management System for the Ministry
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
-Excel Report Formatting: Professional A4 landscape layout with proper alignment, color coding for status values, and printable format for monthly attendance reports.
+Excel Report Formatting: Very compact A4 landscape design for monthly attendance reports. Requires minimal column widths (6.5 characters per day), tight spacing, compact fonts (8pt for headers, 7pt for data), and professional layout that fits all 31 days on a single A4 landscape page. User specifically requested "very compact" design with proper alignment for printing.
 
 ## System Architecture
 
