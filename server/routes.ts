@@ -3648,7 +3648,7 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
             status2 = 'MS';
         }
 
-        // Calculate 1/4 offer hours with proper Group A/B calculation and 15-minute rounding
+        // Calculate 1/4 offer hours without any rounding - show exact time
         if (checkInDate && checkOutDate) {
           const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
           
@@ -3661,10 +3661,13 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
           const totalOutMinutes = (outHour * 60) + outMin;
           const totalWorkingMinutes = totalOutMinutes - totalInMinutes;
           
+          console.log(`Calculating for ${currentDate.toISOString().split('T')[0]}: ${inTime} to ${outTime} = ${totalWorkingMinutes} minutes`);
+          
           if (isWeekend) {
             // Weekend: all working minutes as offer minutes (no rounding)
             if (totalWorkingMinutes > 0) {
               offerHours = totalWorkingMinutes;
+              console.log(`Weekend: ${totalWorkingMinutes} minutes offer hours`);
             }
           } else {
             // Regular day: calculate based on group shift requirements
@@ -3676,6 +3679,7 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
             const excessMinutes = Math.max(0, totalWorkingMinutes - requiredMinutes);
             if (excessMinutes > 0) {
               offerHours = excessMinutes;
+              console.log(`Regular day: ${excessMinutes} excess minutes = ${offerHours} offer hours`);
             }
           }
         }
@@ -3692,20 +3696,12 @@ router.get('/api/reports/individual-offer-attendance', async (req, res) => {
 
       totalOfferHours += offerHours;
 
-      // Format offer hours: 59+ minutes show as hours, below 59 show as minutes
+      // Show exact minutes without any rounding or hour conversion
       let formattedOfferHours = '0.00';
       if (offerHours > 0) {
-        if (offerHours >= 59) {
-          // Convert to proper hour:minute format (e.g., 1.30 hours for 90 minutes)
-          const hours = Math.floor(offerHours / 60);
-          const remainingMinutes = offerHours % 60;
-          // Format as H.MM (where MM is actual minutes, not decimal)
-          const formattedMinutes = remainingMinutes.toString().padStart(2, '0');
-          formattedOfferHours = `${hours}.${formattedMinutes} hours`;
-        } else {
-          // Show as minutes for values under 59
-          formattedOfferHours = `${offerHours}mins`;
-        }
+        // Always show as minutes for exact time tracking
+        formattedOfferHours = `${offerHours}mins`;
+        console.log(`Formatted offer hours: ${formattedOfferHours}`);
       }
 
       dailyData.push({
