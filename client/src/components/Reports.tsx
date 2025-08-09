@@ -658,6 +658,57 @@ export default function Reports() {
             }
           }
         }
+      } else if (reportType === "individual-monthly") {
+        // Special handling for individual monthly report to fit on single A4 page
+        worksheetData.length = 0; // Clear previous data
+        
+        // Add employee info header
+        if (data && data.length > 0) {
+          const employee = data[0];
+          worksheetData.push([`INDIVIDUAL MONTHLY REPORT - ${employee.fullName} (${employee.employeeId})`]);
+          worksheetData.push([`Period: ${formatDate(new Date(startDate))} to ${formatDate(new Date(endDate))}`]);
+          worksheetData.push([`Generated: ${reportGeneratedTime}`]);
+          worksheetData.push([]);
+        }
+        
+        // Add compact headers for individual monthly report
+        const headers = [
+          "Date", "In Time", "Out Time", "Hours", "Status", "Late", "Half Day", "Short Leave", "Notes"
+        ];
+        worksheetData.push(headers);
+        
+        // Add data rows with compact formatting
+        data.forEach((record: any) => {
+          const row = [
+            record.date,
+            record.inTime || '-',
+            record.outTime || '-',
+            record.totalHours || '0.00',
+            record.status,
+            record.isLate ? 'Yes' : 'No',
+            record.isHalfDay ? 'Yes' : 'No',
+            record.onShortLeave ? 'Yes' : 'No',
+            record.notes || '-'
+          ];
+          
+          worksheetData.push(row);
+        });
+        
+        worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+        
+        // Set optimal column widths for individual monthly report
+        const columnWidths = [
+          { wch: 12 }, // Date
+          { wch: 10 }, // In Time
+          { wch: 10 }, // Out Time
+          { wch: 8 },  // Hours
+          { wch: 12 }, // Status
+          { wch: 6 },  // Late
+          { wch: 8 },  // Half Day
+          { wch: 10 }, // Short Leave
+          { wch: 20 }  // Notes
+        ];
+        worksheet['!cols'] = columnWidths;
       } else if (reportType === "offer-attendance") {
         // Special handling for offer-attendance report
         worksheetData.length = 0; // Clear previous data
@@ -878,26 +929,26 @@ export default function Reports() {
         <title>${filename}</title>
         <style>
           @page {
-            size: A4;
-            margin: 0.5in;
+            size: A4 portrait;
+            margin: ${reportType === 'individual-monthly' ? '10mm 8mm' : '0.5in'};
           }
           
           /* Enable layout options in print dialog */
           @media print {
             @page {
-              size: auto;
-              margin: 0.5in;
+              size: A4 ${reportType === 'individual-monthly' ? 'portrait' : 'auto'};
+              margin: ${reportType === 'individual-monthly' ? '10mm 8mm' : '0.5in'};
             }
             
             /* Portrait layout support */
             @page :left {
-              margin-left: 0.6in;
-              margin-right: 0.4in;
+              margin-left: ${reportType === 'individual-monthly' ? '10mm' : '0.6in'};
+              margin-right: ${reportType === 'individual-monthly' ? '8mm' : '0.4in'};
             }
             
             @page :right {
-              margin-left: 0.4in;
-              margin-right: 0.6in;
+              margin-left: ${reportType === 'individual-monthly' ? '8mm' : '0.4in'};
+              margin-right: ${reportType === 'individual-monthly' ? '10mm' : '0.6in'};
             }
           }
           
@@ -1563,6 +1614,210 @@ export default function Reports() {
         }
       });
       
+    } else if (reportType === "individual-monthly") {
+      // Optimized handling for individual monthly report - single A4 page layout
+      const headers = Object.keys(data[0]);
+      
+      // Add employee info header for individual monthly report
+      if (data && data.length > 0) {
+        const employee = data[0];
+        htmlContent += `
+          <div style="background-color: #f3f4f6; padding: 15px; margin-bottom: 20px; border: 2px solid #374151; border-radius: 8px;">
+            <h2 style="color: #1f2937; font-size: 18px; margin: 0 0 8px 0; text-align: center;">
+              Individual Monthly Attendance Report
+            </h2>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #374151;">
+              <div><strong>Employee:</strong> ${employee.fullName || 'N/A'} (${employee.employeeId || 'N/A'})</div>
+              <div><strong>Department:</strong> ${employee.department || 'N/A'}</div>
+              <div><strong>Group:</strong> ${employee.employeeGroup === 'group_a' ? 'Group A' : employee.employeeGroup === 'group_b' ? 'Group B' : 'N/A'}</div>
+            </div>
+            <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 8px;">
+              <strong>Period:</strong> ${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}
+            </div>
+          </div>
+        `;
+      }
+      
+      // Compact table for individual monthly report
+      htmlContent += `
+        <style>
+          .individual-monthly-table {
+            font-size: 9px !important;
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+          }
+          .individual-monthly-table th {
+            background-color: #374151 !important;
+            color: white !important;
+            padding: 6px 4px !important;
+            border: 1px solid #000 !important;
+            font-size: 8px !important;
+            font-weight: bold !important;
+            text-align: center !important;
+          }
+          .individual-monthly-table td {
+            padding: 4px 3px !important;
+            border: 1px solid #374151 !important;
+            font-size: 8px !important;
+            text-align: center !important;
+          }
+          .individual-monthly-table tr:nth-child(even) {
+            background-color: #f9fafb !important;
+          }
+          .individual-monthly-table tr:nth-child(odd) {
+            background-color: #ffffff !important;
+          }
+          @media print {
+            @page {
+              size: A4 portrait;
+              margin: 10mm 8mm 10mm 8mm;
+            }
+            body {
+              font-size: 8px !important;
+              margin: 0 !important;
+              padding: 5px !important;
+            }
+            .header {
+              margin-bottom: 10px !important;
+              padding-bottom: 8px !important;
+            }
+            .company-name {
+              font-size: 16px !important;
+              margin-bottom: 2px !important;
+            }
+            .department {
+              font-size: 12px !important;
+              margin-bottom: 2px !important;
+            }
+            .report-details {
+              padding: 8px !important;
+              margin-bottom: 10px !important;
+            }
+            .report-title {
+              font-size: 14px !important;
+              margin-bottom: 5px !important;
+            }
+            .individual-monthly-table {
+              font-size: 6px !important;
+              page-break-inside: auto;
+              margin-bottom: 15px !important;
+            }
+            .individual-monthly-table th {
+              font-size: 6px !important;
+              padding: 2px 1px !important;
+            }
+            .individual-monthly-table td {
+              font-size: 6px !important;
+              padding: 1px 1px !important;
+            }
+            .footer {
+              margin-top: 15px !important;
+              padding-top: 10px !important;
+              font-size: 7px !important;
+            }
+          }
+        </style>
+        <table class="individual-monthly-table">
+      `;
+      
+      htmlContent += "<thead><tr>";
+      headers.forEach((header, index) => {
+        const displayHeader = header.replace(/([A-Z])/g, " $1").replace(/^./, str => str.toUpperCase());
+        htmlContent += `<th>${displayHeader}</th>`;
+      });
+      htmlContent += "</tr></thead><tbody>";
+      
+      data.forEach(row => {
+        htmlContent += "<tr>";
+        headers.forEach((header, index) => {
+          let cellValue = row[header] || "";
+          
+          // Special formatting for individual monthly report cells
+          if (header === 'status') {
+            if (cellValue === 'Present' || cellValue === 'P') {
+              cellValue = `<span style="color: #059669; font-weight: bold;">${cellValue}</span>`;
+            } else if (cellValue === 'Absent' || cellValue === 'A') {
+              cellValue = `<span style="color: #dc2626; font-weight: bold;">${cellValue}</span>`;
+            } else if (cellValue === 'Late') {
+              cellValue = `<span style="color: #f59e0b; font-weight: bold;">${cellValue}</span>`;
+            } else if (cellValue === 'Half Day' || cellValue === 'HL') {
+              cellValue = `<span style="color: #8b5cf6; font-weight: bold;">${cellValue}</span>`;
+            }
+          } else if (header === 'isLate' || header === 'isHalfDay' || header === 'onShortLeave') {
+            cellValue = cellValue === true || cellValue === 'true' ? 'Yes' : cellValue === false || cellValue === 'false' ? 'No' : cellValue;
+          }
+          
+          htmlContent += `<td>${cellValue}</td>`;
+        });
+        htmlContent += "</tr>";
+      });
+      
+      htmlContent += "</tbody></table>";
+      
+      // Add summary section for individual monthly report
+      const presentDays = data.filter((row: any) => row.status === 'Present' || row.status === 'P').length;
+      const absentDays = data.filter((row: any) => row.status === 'Absent' || row.status === 'A').length;
+      const lateDays = data.filter((row: any) => row.isLate === true || row.isLate === 'true').length;
+      const halfDays = data.filter((row: any) => row.isHalfDay === true || row.isHalfDay === 'true').length;
+      const totalHours = data.reduce((sum: number, row: any) => sum + (parseFloat(row.totalHours) || 0), 0);
+      
+      htmlContent += `
+        <style>
+          .monthly-summary {
+            background-color: #f8fafc; 
+            padding: 10px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 6px; 
+            margin-top: 15px;
+            page-break-inside: avoid;
+          }
+          .monthly-summary h3 {
+            color: #374151; 
+            font-size: 12px; 
+            margin: 0 0 8px 0; 
+            text-align: center;
+          }
+          .summary-grid {
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 8px; 
+            font-size: 9px;
+          }
+          .summary-item {
+            text-align: center;
+            padding: 4px;
+          }
+          @media print {
+            .monthly-summary {
+              padding: 6px !important;
+              margin-top: 10px !important;
+            }
+            .monthly-summary h3 {
+              font-size: 10px !important;
+              margin-bottom: 6px !important;
+            }
+            .summary-grid {
+              font-size: 7px !important;
+              gap: 4px !important;
+            }
+            .summary-item {
+              padding: 2px !important;
+            }
+          }
+        </style>
+        <div class="monthly-summary">
+          <h3>Monthly Summary</h3>
+          <div class="summary-grid">
+            <div class="summary-item"><strong>Present:</strong> ${presentDays}</div>
+            <div class="summary-item"><strong>Absent:</strong> ${absentDays}</div>
+            <div class="summary-item"><strong>Late:</strong> ${lateDays}</div>
+            <div class="summary-item"><strong>Half Days:</strong> ${halfDays}</div>
+            <div class="summary-item"><strong>Total Hours:</strong> ${totalHours.toFixed(2)}</div>
+            <div class="summary-item"><strong>Attendance:</strong> ${data.length > 0 ? ((presentDays / data.length) * 100).toFixed(1) : 0}%</div>
+          </div>
+        </div>
+      `;
     } else {
       // Standard table export with proper alignment
       const headers = Object.keys(data[0]);
