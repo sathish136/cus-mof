@@ -1019,18 +1019,29 @@ export default function Settings() {
                       <Button
                         size="sm"
                         onClick={() => {
-                          // Trigger manual sync for all devices
-                          biometricDevices?.forEach(device => {
-                            syncDeviceMutation.mutate(device.deviceId);
-                          });
-                          const newSettings = {...autoSyncSettings, lastSync: new Date()};
-                          setAutoSyncSettings(newSettings);
-                          localStorage.setItem('autoSyncSettings', JSON.stringify(newSettings));
+                          // Use the bulk sync endpoint for all devices
+                          fetch('/api/auto-sync/manual', { method: 'POST' })
+                            .then(res => res.json())
+                            .then(data => {
+                              toast({
+                                title: "Bulk Sync Complete",
+                                description: "All devices have been synced successfully",
+                              });
+                              const newSettings = {...autoSyncSettings, lastSync: new Date()};
+                              setAutoSyncSettings(newSettings);
+                              localStorage.setItem('autoSyncSettings', JSON.stringify(newSettings));
+                            })
+                            .catch(error => {
+                              toast({
+                                title: "Bulk Sync Failed",
+                                description: error.message,
+                                variant: "destructive",
+                              });
+                            });
                         }}
-                        disabled={syncDeviceMutation.isPending}
                         className="bg-blue-600 hover:bg-blue-700"
                       >
-                        {syncDeviceMutation.isPending ? 'Syncing...' : 'Sync Now'}
+                        Sync All Devices
                       </Button>
                     </div>
                   </div>
@@ -1219,11 +1230,11 @@ export default function Settings() {
                         variant="outline" 
                         size="sm"
                         onClick={() => syncDeviceMutation.mutate(device.deviceId)}
-                        disabled={syncDeviceMutation.isPending}
+                        disabled={syncDeviceMutation.isPending && syncDeviceMutation.variables === device.deviceId}
                         className="text-amber-600 border-amber-200 hover:bg-amber-50"
                         title="Sync Attendance Data"
                       >
-                        {syncDeviceMutation.isPending ? 
+                        {syncDeviceMutation.isPending && syncDeviceMutation.variables === device.deviceId ? 
                           <RefreshCw className="w-4 h-4 animate-spin" /> : 
                           <RefreshCw className="w-4 h-4" />
                         }

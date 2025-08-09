@@ -2520,7 +2520,7 @@ router.post("/api/auto-sync/device/:deviceId", async (req, res) => {
         if (!attendanceMap.has(mapKey)) {
           attendanceMap.set(mapKey, {
             employeeId: employeeDbId,
-            date: dateKey,
+            date: new Date(dateKey),
             checkIn: logDate,
             checkOut: logDate,
             status: 'present'
