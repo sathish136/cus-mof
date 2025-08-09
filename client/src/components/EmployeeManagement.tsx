@@ -711,24 +711,24 @@ export default function EmployeeManagement() {
             </div>
 
             <div className="bg-gray-50 border rounded-lg p-3">
-              <h5 className="font-medium text-gray-900 mb-2">Sample Format:</h5>
+              <h5 className="font-medium text-gray-900 mb-2">Sample Format (Actual Employee Data):</h5>
               <div className="text-sm font-mono bg-white border rounded p-2">
                 <div className="grid grid-cols-2 gap-4 border-b pb-1 mb-1 font-semibold">
                   <span>Employee ID</span>
                   <span>Full Name</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <span>17</span>
-                  <span>Sathish Kumar</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <span>12</span>
-                  <span>John Silva</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <span>11</span>
-                  <span>Mary Fernando</span>
-                </div>
+                {employees.slice(0, 3).map(emp => (
+                  <div key={emp.id} className="grid grid-cols-2 gap-4 text-xs">
+                    <span>{emp.employeeId}</span>
+                    <span>{emp.fullName}</span>
+                  </div>
+                ))}
+                {employees.length === 0 && (
+                  <div className="grid grid-cols-2 gap-4 text-xs text-gray-500">
+                    <span>No employees found</span>
+                    <span>-</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -743,9 +743,18 @@ export default function EmployeeManagement() {
             </Button>
             <Button 
               onClick={() => {
-                // Download sample template
-                const csv = "Employee ID,Full Name\n17,Sathish Kumar\n12,John Silva\n11,Mary Fernando";
-                const blob = new Blob([csv], { type: 'text/csv' });
+                // Download template with actual employee data
+                let csvContent = "Employee ID,Full Name\n";
+                if (employees.length > 0) {
+                  // Use actual employee data
+                  employees.slice(0, 10).forEach(emp => {
+                    csvContent += `${emp.employeeId},${emp.fullName}\n`;
+                  });
+                } else {
+                  // Fallback if no employees exist
+                  csvContent += "ADM001,Sample Employee Name\n";
+                }
+                const blob = new Blob([csvContent], { type: 'text/csv' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
